@@ -16,6 +16,7 @@
 
 package com.android.calendar.month;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
@@ -58,6 +59,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+@SuppressLint("ValidFragment")
 public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         CalendarController.EventHandler, LoaderManager.LoaderCallbacks<Cursor>, OnScrollListener,
         OnTouchListener {
