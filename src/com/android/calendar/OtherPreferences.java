@@ -32,7 +32,6 @@ import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.text.format.DateFormat;
 import android.text.format.Time;
-import android.util.Log;
 import android.widget.TimePicker;
 
 public class OtherPreferences extends PreferenceFragment  implements OnPreferenceChangeListener{

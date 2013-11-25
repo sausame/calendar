@@ -40,9 +40,9 @@ import android.provider.CalendarContract.CalendarAlerts;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.format.Time;
-import android.util.Log;
 
 import com.android.calendar.GeneralPreferences;
+import com.android.calendar.Log;
 import com.android.calendar.OtherPreferences;
 import com.android.calendar.R;
 import com.android.calendar.Utils;

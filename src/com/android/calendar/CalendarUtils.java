@@ -27,7 +27,6 @@ import android.provider.CalendarContract.CalendarCache;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.format.Time;
-import android.util.Log;
 
 import java.util.Formatter;
 import java.util.HashSet;

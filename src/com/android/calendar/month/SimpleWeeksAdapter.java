@@ -19,11 +19,11 @@ package com.android.calendar.month;
 // TODO Remove calendar imports when the required methods have been
 // refactored into the public api
 import com.android.calendar.CalendarController;
+import com.android.calendar.Log;
 import com.android.calendar.Utils;
 
 import android.content.Context;
 import android.text.format.Time;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;

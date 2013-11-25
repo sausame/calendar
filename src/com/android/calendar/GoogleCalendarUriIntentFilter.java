@@ -36,7 +36,6 @@ import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
 
 import com.android.calendarcommon2.DateException;
 import com.android.calendarcommon2.Duration;

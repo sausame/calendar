@@ -31,7 +31,6 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.provider.CalendarContract.Calendars;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.TouchDelegate;
 import android.view.View;
@@ -42,6 +41,7 @@ import android.widget.CursorTreeAdapter;
 import android.widget.TextView;
 
 import com.android.calendar.CalendarColorPickerDialog;
+import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.selectcalendars.CalendarColorCache.OnCalendarColorsLoadedListener;

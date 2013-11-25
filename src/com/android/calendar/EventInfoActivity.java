@@ -31,7 +31,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.Attendees;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.android.calendar.CalendarEventModel.ReminderEntry;

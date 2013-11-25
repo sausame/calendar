@@ -31,11 +31,11 @@ import android.net.Uri;
 import android.provider.CalendarContract;
 import android.text.format.DateUtils;
 import android.text.format.Time;
-import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.android.calendar.AllInOneActivity;
 import com.android.calendar.EventInfoActivity;
+import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 

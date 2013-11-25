@@ -27,8 +27,8 @@ import android.os.IBinder;
 import android.provider.CalendarContract.CalendarAlerts;
 import android.support.v4.app.TaskStackBuilder;
 
-import android.util.Log;
 import com.android.calendar.EventInfoActivity;
+import com.android.calendar.Log;
 import com.android.calendar.alerts.GlobalDismissManager.AlarmId;
 
 import java.util.LinkedList;

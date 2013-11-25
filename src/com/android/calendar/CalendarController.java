@@ -37,7 +37,6 @@ import android.provider.CalendarContract.Attendees;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
 import android.text.format.Time;
-import android.util.Log;
 import android.util.Pair;
 
 import com.android.calendar.event.EditEventActivity;

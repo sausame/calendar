@@ -16,12 +16,12 @@
 package com.android.calendar.event;
 
 import com.android.calendar.CalendarEventModel.ReminderEntry;
+import com.android.calendar.Log;
 import com.android.calendar.R;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView.OnItemSelectedListener;

@@ -31,7 +31,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;

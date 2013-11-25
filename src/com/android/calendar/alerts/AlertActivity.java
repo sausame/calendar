@@ -29,7 +29,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.CalendarAlerts;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
@@ -39,6 +38,7 @@ import android.widget.ListView;
 
 import com.android.calendar.AsyncQueryService;
 import com.android.calendar.EventInfoActivity;
+import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.alerts.GlobalDismissManager.AlarmId;

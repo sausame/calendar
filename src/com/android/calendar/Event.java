@@ -30,7 +30,6 @@ import android.provider.CalendarContract.Events;
 import android.provider.CalendarContract.Instances;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;

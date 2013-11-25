@@ -17,6 +17,7 @@
 package com.android.calendar.month;
 
 import com.android.calendar.Event;
+import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 
@@ -40,7 +41,6 @@ import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityManager;

@@ -16,13 +16,14 @@
 
 package com.android.calendar.alerts;
 
+import com.android.calendar.Log;
+
 import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.SystemClock;
 import android.provider.CalendarContract;
-import android.util.Log;
 
 /**
  * Service for clearing all scheduled alerts from the CalendarAlerts table and

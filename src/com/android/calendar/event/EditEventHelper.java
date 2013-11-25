@@ -33,7 +33,6 @@ import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.text.util.Rfc822Token;
 import android.text.util.Rfc822Tokenizer;
-import android.util.Log;
 import android.view.View;
 
 import com.android.calendar.AbstractCalendarActivity;
@@ -41,6 +40,7 @@ import com.android.calendar.AsyncQueryService;
 import com.android.calendar.CalendarEventModel;
 import com.android.calendar.CalendarEventModel.Attendee;
 import com.android.calendar.CalendarEventModel.ReminderEntry;
+import com.android.calendar.Log;
 import com.android.calendar.Utils;
 import com.android.calendarcommon2.DateException;
 import com.android.calendarcommon2.EventRecurrence;

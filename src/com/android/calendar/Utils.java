@@ -48,7 +48,6 @@ import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.text.style.URLSpan;
 import android.text.util.Linkify;
-import android.util.Log;
 import android.widget.SearchView;
 
 import com.android.calendar.CalendarController.ViewType;

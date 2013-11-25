@@ -18,6 +18,7 @@ package com.android.calendar.event;
 
 import com.android.calendar.CalendarEventModel.Attendee;
 import com.android.calendar.ContactsAsyncHelper;
+import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper.AttendeeItem;
@@ -43,7 +44,6 @@ import android.provider.ContactsContract.RawContacts;
 import android.text.TextUtils;
 import android.text.util.Rfc822Token;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageButton;

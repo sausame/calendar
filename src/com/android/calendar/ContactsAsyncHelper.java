@@ -26,7 +26,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.ContactsContract.Contacts;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 

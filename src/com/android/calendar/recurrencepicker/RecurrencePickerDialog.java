@@ -29,7 +29,6 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.text.format.Time;
-import android.util.Log;
 import android.util.TimeFormatException;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,6 +53,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendarcommon2.EventRecurrence;

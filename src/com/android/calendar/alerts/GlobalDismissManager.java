@@ -29,11 +29,11 @@ import android.os.Bundle;
 import android.provider.CalendarContract.CalendarAlerts;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Events;
-import android.util.Log;
 import android.util.Pair;
 
 import com.android.calendar.CloudNotificationBackplane;
 import com.android.calendar.ExtensionsFactory;
+import com.android.calendar.Log;
 import com.android.calendar.R;
 
 import java.io.IOException;

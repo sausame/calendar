@@ -23,7 +23,6 @@ import android.os.Handler;
 import android.os.Process;
 import android.provider.CalendarContract;
 import android.provider.CalendarContract.EventDays;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
