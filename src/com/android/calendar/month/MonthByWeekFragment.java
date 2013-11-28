@@ -22,7 +22,6 @@ import android.app.FragmentManager;
 import android.app.LoaderManager;
 import android.content.ContentUris;
 import android.content.CursorLoader;
-import android.content.Loader;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.drawable.StateListDrawable;
@@ -48,6 +47,8 @@ import com.android.calendar.CalendarController;
 import com.android.calendar.CalendarController.EventInfo;
 import com.android.calendar.CalendarController.EventType;
 import com.android.calendar.CalendarController.ViewType;
+import com.android.calendar.CalendarDatabase;
+import com.android.calendar.CalendarDatabase.Loader;
 import com.android.calendar.Event;
 import com.android.calendar.Log;
 import com.android.calendar.R;
@@ -61,17 +62,14 @@ import java.util.List;
 
 @SuppressLint("ValidFragment")
 public class MonthByWeekFragment extends SimpleDayPickerFragment implements
-        CalendarController.EventHandler, LoaderManager.LoaderCallbacks<Cursor>, OnScrollListener,
+        CalendarController.EventHandler, OnScrollListener, CalendarDatabase.OnLoaderListener,
         OnTouchListener {
     private static final String TAG = "MonthFragment";
     private static final String TAG_EVENT_DIALOG = "event_dialog";
 
     private CreateEventDialogFragment mEventDialog;
 
-    // Selection and selection args for adding event queries
-    private static final String WHERE_CALENDARS_VISIBLE = Calendars.VISIBLE + "=1";
-    private static final String INSTANCES_SORT_ORDER = Instances.START_DAY + ","
-            + Instances.START_MINUTE + "," + Instances.TITLE;
+
     protected static boolean mShowDetailsInMonth = false;
 
     protected float mMinimumTwoMonthFlingVelocity;
@@ -86,11 +84,8 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
     // Using scroll duration because scroll state changes don't update
     // correctly when a scroll is triggered programmatically.
     private static final int LOADER_DELAY = 200;
-    // The minimum time between requeries of the data if the db is
-    // changing
-    private static final int LOADER_THROTTLE_DELAY = 500;
 
-    private CursorLoader mLoader;
+    private Loader mLoader;
     private Uri mEventUri;
     private final Time mDesiredDay = new Time();
 
@@ -140,18 +135,9 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
                 if (!mShouldLoad || mLoader == null) {
                     return;
                 }
-                // Stop any previous loads while we update the uri
-                stopLoader();
-
-                // Start the loader again
-                mEventUri = updateUri();
-
-                mLoader.setUri(mEventUri);
-                mLoader.startLoading();
-                mLoader.onContentChanged();
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
-                    Log.d(TAG, "Started loader with uri: " + mEventUri);
-                }
+                
+                updateJulianDay();
+                mLoader.start(mFirstLoadedJulianDay, mHideDeclined || !mShowDetailsInMonth);
             }
         }
     };
@@ -160,8 +146,7 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         @Override
         public void run() {
             if (!mIsDetached) {
-                mLoader = (CursorLoader) getLoaderManager().initLoader(0, null,
-                        MonthByWeekFragment.this);
+                mLoader = Loader.create(getActivity(), getLoaderManager(), MonthByWeekFragment.this);
             }
         }
     };
@@ -173,25 +158,18 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
      *
      * @return The new Uri to use
      */
-    private Uri updateUri() {
+    private void updateJulianDay() {
         SimpleWeekView child = (SimpleWeekView) mListView.getChildAt(0);
         if (child != null) {
             int julianDay = child.getFirstJulianDay();
             mFirstLoadedJulianDay = julianDay;
+        } else {
+            mFirstLoadedJulianDay =
+                    Time.getJulianDay(mSelectedDay.toMillis(true), mSelectedDay.gmtoff)
+                    - (mNumWeeks * 7 / 2);       	
         }
-        // -1 to ensure we get all day events from any time zone
-        mTempTime.setJulianDay(mFirstLoadedJulianDay - 1);
-        long start = mTempTime.toMillis(true);
-        mLastLoadedJulianDay = mFirstLoadedJulianDay + (mNumWeeks + 2 * WEEKS_BUFFER) * 7;
-        // +1 to ensure we get all day events from any time zone
-        mTempTime.setJulianDay(mLastLoadedJulianDay + 1);
-        long end = mTempTime.toMillis(true);
 
-        // Create a new uri with the updated times
-        Uri.Builder builder = Instances.CONTENT_URI.buildUpon();
-        ContentUris.appendId(builder, start);
-        ContentUris.appendId(builder, end);
-        return builder.build();
+        mLastLoadedJulianDay = mFirstLoadedJulianDay + (mNumWeeks + 2 * WEEKS_BUFFER) * 7;
     }
 
     // Extract range of julian days from URI
@@ -209,24 +187,11 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         mLastLoadedJulianDay = Time.getJulianDay(last, mTempTime.gmtoff);
     }
 
-    protected String updateWhere() {
-        // TODO fix selection/selection args after b/3206641 is fixed
-        String where = WHERE_CALENDARS_VISIBLE;
-        if (mHideDeclined || !mShowDetailsInMonth) {
-            where += " AND " + Instances.SELF_ATTENDEE_STATUS + "!="
-                    + Attendees.ATTENDEE_STATUS_DECLINED;
-        }
-        return where;
-    }
-
     private void stopLoader() {
         synchronized (mUpdateLoader) {
             mHandler.removeCallbacks(mUpdateLoader);
             if (mLoader != null) {
-                mLoader.stopLoading();
-                if (Log.isLoggable(TAG, Log.DEBUG)) {
-                    Log.d(TAG, "Stopped loader from loading");
-                }
+                mLoader.stop();
             }
         }
     }
@@ -313,7 +278,7 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         if (mShowCalendarControls) {
             mListView.postDelayed(mLoadingRunnable, mEventsLoadingDelay);
         } else {
-            mLoader = (CursorLoader) getLoaderManager().initLoader(0, null, this);
+        	mLoader = Loader.create(getActivity(), getLoaderManager(), MonthByWeekFragment.this);
         }
         mAdapter.setListView(mListView);
     }
@@ -341,31 +306,6 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         }
     }
 
-    // TODO
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        if (mIsMiniMonth) {
-            return null;
-        }
-        CursorLoader loader;
-        synchronized (mUpdateLoader) {
-            mFirstLoadedJulianDay =
-                    Time.getJulianDay(mSelectedDay.toMillis(true), mSelectedDay.gmtoff)
-                    - (mNumWeeks * 7 / 2);
-            mEventUri = updateUri();
-            String where = updateWhere();
-
-            loader = new CursorLoader(
-                    getActivity(), mEventUri, Event.EVENT_PROJECTION, where,
-                    null /* WHERE_CALENDARS_SELECTED_ARGS */, INSTANCES_SORT_ORDER);
-            loader.setUpdateThrottle(LOADER_THROTTLE_DELAY);
-        }
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "Returning new loader with uri: " + mEventUri);
-        }
-        return loader;
-    }
-
     @Override
     public void doResumeUpdates() {
         mFirstDayOfWeek = Utils.getFirstDayOfWeek(mContext);
@@ -373,7 +313,7 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         boolean prevHideDeclined = mHideDeclined;
         mHideDeclined = Utils.getHideDeclinedEvents(mContext);
         if (prevHideDeclined != mHideDeclined && mLoader != null) {
-            mLoader.setSelection(updateWhere());
+            mLoader.setSelection(true);
         }
         mDaysPerWeek = Utils.getDaysPerWeek(mContext);
         updateHeader();
@@ -384,17 +324,22 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    public void onLoadFinished(Uri uri, Cursor data) {
+    	Log.v("IsMini " + this.mIsMiniMonth);
+    	if (mIsMiniMonth) {
+    		return;
+    	}
+    	
         synchronized (mUpdateLoader) {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
                 Log.d(TAG, "Found " + data.getCount() + " cursor entries for uri " + mEventUri);
             }
-            CursorLoader cLoader = (CursorLoader) loader;
+
             if (mEventUri == null) {
-                mEventUri = cLoader.getUri();
+                mEventUri = uri;
                 updateLoadedDays();
             }
-            if (cLoader.getUri().compareTo(mEventUri) != 0) {
+            if (uri.compareTo(mEventUri) != 0) {
                 // We've started a new query since this loader ran so ignore the
                 // result
                 return;
@@ -405,10 +350,6 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
             ((MonthByWeekAdapter) mAdapter).setEvents(mFirstLoadedJulianDay,
                     mLastLoadedJulianDay - mFirstLoadedJulianDay + 1, events);
         }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
     }
 
     @Override
@@ -513,4 +454,10 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         // wrong in a scroll such as the user stopping the view but not
         // scrolling
     }
+
+	@Override
+	public boolean isCanStartLoader() {
+		return !mIsMiniMonth;
+	}
+
 }
