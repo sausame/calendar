@@ -137,6 +137,7 @@ public class CalendarDatabase {
 			return this;
 		}
 
+		// XXX The function isn't called.
 		public void start(int julianDay, boolean isHide) {
 			synchronized (this) {
 				if (mLoader == null) {
@@ -179,6 +180,8 @@ public class CalendarDatabase {
 		/**
 		 * Updates the uri used by the loader according to the current position
 		 * of the listview.
+		 * 
+		 * XXX The value doesn't equal that in the old design.
 		 * 
 		 * @return The new Uri to use
 		 */
