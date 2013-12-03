@@ -19,6 +19,7 @@ package com.android.calendar;
 import com.android.calendar.CalendarController.EventInfo;
 import com.android.calendar.CalendarController.EventType;
 
+import android.annotation.SuppressLint;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ import android.widget.ViewSwitcher.ViewFactory;
 /**
  * This is the base class for Day and Week Activities.
  */
+@SuppressLint("ValidFragment")
 public class DayFragment extends Fragment implements CalendarController.EventHandler, ViewFactory {
     /**
      * The view id used for all the views we create. It's OK to have all child
