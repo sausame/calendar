@@ -62,6 +62,7 @@ public class Event implements Cloneable {
     private static final String ALLDAY_WHERE = DISPLAY_AS_ALLDAY + "=1";
 
     // The projection to use when querying instances to build a list of events
+    // TODO Only used in CalendarDatabase.
     public static final String[] EVENT_PROJECTION = new String[] {
             Instances.TITLE,                 // 0
             Instances.EVENT_LOCATION,        // 1
