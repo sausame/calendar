@@ -257,9 +257,9 @@ public class Event implements Cloneable {
                 whereAllday += hideString;
             }
 
-            cEvents = instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
+            cEvents = CalendarDatabase.instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
                     endDay, where, null, SORT_EVENTS_BY);
-            cAllday = instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
+            cAllday = CalendarDatabase.instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
                     endDay, whereAllday, null, SORT_ALLDAY_BY);
 
             // Check if we should return early because there are more recent
@@ -282,50 +282,6 @@ public class Event implements Cloneable {
                 Debug.stopMethodTracing();
             }
         }
-    }
-
-    /**
-     * Performs a query to return all visible instances in the given range
-     * that match the given selection. This is a blocking function and
-     * should not be done on the UI thread. This will cause an expansion of
-     * recurring events to fill this time range if they are not already
-     * expanded and will slow down for larger time ranges with many
-     * recurring events.
-     *
-     * @param cr The ContentResolver to use for the query
-     * @param projection The columns to return
-     * @param begin The start of the time range to query in UTC millis since
-     *            epoch
-     * @param end The end of the time range to query in UTC millis since
-     *            epoch
-     * @param selection Filter on the query as an SQL WHERE statement
-     * @param selectionArgs Args to replace any '?'s in the selection
-     * @param orderBy How to order the rows as an SQL ORDER BY statement
-     * @return A Cursor of instances matching the selection
-     */
-    private static final Cursor instancesQuery(ContentResolver cr, String[] projection,
-            int startDay, int endDay, String selection, String[] selectionArgs, String orderBy) {
-        String WHERE_CALENDARS_SELECTED = Calendars.VISIBLE + "=?";
-        String[] WHERE_CALENDARS_ARGS = {"1"};
-        String DEFAULT_SORT_ORDER = "begin ASC";
-
-        Uri.Builder builder = Instances.CONTENT_BY_DAY_URI.buildUpon();
-        ContentUris.appendId(builder, startDay);
-        ContentUris.appendId(builder, endDay);
-        if (TextUtils.isEmpty(selection)) {
-            selection = WHERE_CALENDARS_SELECTED;
-            selectionArgs = WHERE_CALENDARS_ARGS;
-        } else {
-            selection = "(" + selection + ") AND " + WHERE_CALENDARS_SELECTED;
-            if (selectionArgs != null && selectionArgs.length > 0) {
-                selectionArgs = Arrays.copyOf(selectionArgs, selectionArgs.length + 1);
-                selectionArgs[selectionArgs.length - 1] = WHERE_CALENDARS_ARGS[0];
-            } else {
-                selectionArgs = WHERE_CALENDARS_ARGS;
-            }
-        }
-        return cr.query(builder.build(), projection, selection, selectionArgs,
-                orderBy == null ? DEFAULT_SORT_ORDER : orderBy);
     }
 
     /**
