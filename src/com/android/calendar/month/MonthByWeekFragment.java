@@ -146,7 +146,7 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         @Override
         public void run() {
             if (!mIsDetached) {
-                mLoader = Loader.create(getActivity(), getLoaderManager(), MonthByWeekFragment.this);
+                mLoader = Loader.create(getActivity(), getLoaderManager(), mSelectedDay, MonthByWeekFragment.this);
             }
         }
     };
@@ -271,15 +271,16 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
 
         if (!mIsMiniMonth) {
             mListView.setBackgroundColor(getResources().getColor(R.color.month_bgcolor));
-        }
+            
+	        // To get a smoother transition when showing this fragment, delay loading of events until
+	        // the fragment is expended fully and the calendar controls are gone.
+	        if (mShowCalendarControls) {
+	            mListView.postDelayed(mLoadingRunnable, mEventsLoadingDelay);
+	        } else {
+	        	mLoader = Loader.create(getActivity(), getLoaderManager(), mSelectedDay, MonthByWeekFragment.this);
+	        }	        
+	    }
 
-        // To get a smoother transition when showing this fragment, delay loading of events until
-        // the fragment is expended fully and the calendar controls are gone.
-        if (mShowCalendarControls) {
-            mListView.postDelayed(mLoadingRunnable, mEventsLoadingDelay);
-        } else {
-        	mLoader = Loader.create(getActivity(), getLoaderManager(), MonthByWeekFragment.this);
-        }
         mAdapter.setListView(mListView);
     }
 
@@ -325,14 +326,13 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
 
     @Override
     public void onLoadFinished(Uri uri, Cursor data) {
-    	Log.v("IsMini " + this.mIsMiniMonth);
     	if (mIsMiniMonth) {
     		return;
     	}
     	
         synchronized (mUpdateLoader) {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "Found " + data.getCount() + " cursor entries for uri " + mEventUri);
+                Log.d(TAG, "Found " + data.getCount() + " cursor entries for uri " + uri);
             }
 
             if (mEventUri == null) {
@@ -454,10 +454,5 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
         // wrong in a scroll such as the user stopping the view but not
         // scrolling
     }
-
-	@Override
-	public boolean isCanStartLoader() {
-		return !mIsMiniMonth;
-	}
 
 }
