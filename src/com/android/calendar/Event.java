@@ -613,7 +613,7 @@ public class Event implements Cloneable {
 	}
 
 	public final static int LEVEL_COLOR[] = { android.R.color.holo_green_light,
-			android.R.color.holo_blue_light, android.R.color.holo_orange_light,
+			android.R.color.holo_blue_light, android.R.color.holo_purple,
 			android.R.color.holo_orange_light, android.R.color.holo_red_light };
 
 	private static int getColorFromLevel(int level) {
