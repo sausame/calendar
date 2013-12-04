@@ -30,6 +30,7 @@ import android.provider.CalendarContract.Events;
 import android.provider.CalendarContract.Instances;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
+import android.text.format.Time;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -318,7 +319,9 @@ public class Event implements Cloneable {
         // get sorted in the correct order
         cEvents.moveToPosition(-1);
         while (cEvents.moveToNext()) {
+        	// Event e = generateEventFromCursor(cEvents); // Calendar design
             Event e = generateEventFromCursor(context, cEvents);
+            Log.v("" + startDay + " < " + e.startDay + " <= " + e.endDay + " < " + endDay);
             if (e.startDay > endDay || e.endDay < startDay) {
                 continue;
             }
@@ -637,11 +640,11 @@ public class Event implements Cloneable {
 
 		long eStart = infor.whichDay.getTime();
 		long eEnd = eStart;
+		
+		Time t = new Time(); 
+		t.set(eStart);
 
-		Calendar calendar = new GregorianCalendar();
-		calendar.setTime(infor.whichDay);
-
-		int eDate = calendar.get(Calendar.DATE);
+		int eDate = Time.getJulianDay(eStart, t.gmtoff);;
 
 		e.startMillis = eStart;
 		e.startTime = 0;

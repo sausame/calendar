@@ -289,11 +289,19 @@ public class CalendarDatabase {
 			return (new Loader(ctx, lm)).setSelectDay(day).init(listener);
 		}
 
+		private Context mContext;
+		private LoaderManager mLoaderManager;
+		private int mFirstLoadedJulianDay;
+		private int mNumWeeks = 6;
+		private static final int WEEKS_BUFFER = 1;
+
 		private Loader(Context ctx, LoaderManager lm) {
+			mContext = ctx;
+			mLoaderManager = lm;
 		}
 
 		public Loader init(OnLoaderListener listener) {
-			listener.onLoadFinished(null, new PersonalDailyInformationCursor());
+			listener.onLoadFinished(updateUri(), new PersonalDailyInformationCursor(mContext));
 			return this;
 		}
 
@@ -301,6 +309,8 @@ public class CalendarDatabase {
 		}
 
 		public Loader setSelectDay(Time day) {
+			mFirstLoadedJulianDay = Time.getJulianDay(day.toMillis(true),
+					day.gmtoff) - (mNumWeeks * 7 / 2);
 			return this;
 		}
 
@@ -315,6 +325,39 @@ public class CalendarDatabase {
 		}
 
 		public void setSelection(boolean isHide) {
+		}
+		
+		/**
+		 * Updates the uri used by the loader according to the current position
+		 * of the listview.
+		 * 
+		 * XXX The value doesn't equal that in the old design.
+		 * 
+		 * @return The new Uri to use
+		 */
+		private Uri updateUri() {
+			// disposable variable used for time calculations
+			Time tempTime = new Time();
+
+			// -1 to ensure we get all day events from any time zone
+			tempTime.setJulianDay(mFirstLoadedJulianDay - 1);
+			long start = tempTime.toMillis(true);
+			int lastLoadedJulianDay = mFirstLoadedJulianDay
+					+ (mNumWeeks + 2 * WEEKS_BUFFER) * 7;
+
+			Log.v("Start: " + tempTime.toString());
+
+			// +1 to ensure we get all day events from any time zone
+			tempTime.setJulianDay(lastLoadedJulianDay + 1);
+			long end = tempTime.toMillis(true);
+
+			Log.v("End: " + tempTime.toString());
+
+			// Create a new uri with the updated times
+			Uri.Builder builder = Instances.CONTENT_URI.buildUpon();
+			ContentUris.appendId(builder, start);
+			ContentUris.appendId(builder, end);
+			return builder.build();
 		}
 	}
 }
