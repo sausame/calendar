@@ -263,9 +263,9 @@ public class Event implements Cloneable {
                 whereAllday += hideString;
             }
 
-            cEvents = CalendarDatabase.instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
-                    endDay, where, null, SORT_EVENTS_BY);
-            cAllday = CalendarDatabase.instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
+//            cEvents = CalendarDatabase.instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
+//                    endDay, where, null, SORT_EVENTS_BY);
+            cAllday = CalendarDatabase.instancesQuery(context, EVENT_PROJECTION, startDay,
                     endDay, whereAllday, null, SORT_ALLDAY_BY);
 
             // Check if we should return early because there are more recent

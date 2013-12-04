@@ -50,7 +50,7 @@ public class CalendarDatabase {
 	 *            How to order the rows as an SQL ORDER BY statement
 	 * @return A Cursor of instances matching the selection
 	 */
-	public static final Cursor instancesQuery0(ContentResolver cr,
+	public static final Cursor instancesQuery(ContentResolver cr,
 			String[] projection, int startDay, int endDay, String selection,
 			String[] selectionArgs, String orderBy) {
 		String WHERE_CALENDARS_SELECTED = Calendars.VISIBLE + "=?";
@@ -276,11 +276,11 @@ public class CalendarDatabase {
 	// ------------------------------------------------------------------------------
 	// For personal daily information.
 	// ------------------------------------------------------------------------------
-	public static final Cursor instancesQuery(ContentResolver cr,
-			String[] projection, int startDay, int endDay, String selection,
-			String[] selectionArgs, String orderBy) {
+	public static final Cursor instancesQuery(Context ctx, String[] projection,
+			int startDay, int endDay, String selection, String[] selectionArgs,
+			String orderBy) {
 
-		return null;
+		return new PersonalDailyInformationCursor(ctx);
 	}
 
 	public static class Loader {
@@ -301,7 +301,8 @@ public class CalendarDatabase {
 		}
 
 		public Loader init(OnLoaderListener listener) {
-			listener.onLoadFinished(updateUri(), new PersonalDailyInformationCursor(mContext));
+			listener.onLoadFinished(updateUri(),
+					new PersonalDailyInformationCursor(mContext));
 			return this;
 		}
 
@@ -326,7 +327,7 @@ public class CalendarDatabase {
 
 		public void setSelection(boolean isHide) {
 		}
-		
+
 		/**
 		 * Updates the uri used by the loader according to the current position
 		 * of the listview.
