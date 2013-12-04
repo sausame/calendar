@@ -3,6 +3,7 @@ package com.android.calendar;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.android.calendar.infor.PersonalDailyInformationCursor;
 import com.android.calendar.month.MonthByWeekAdapter;
 import com.android.calendar.month.MonthByWeekFragment;
 import com.android.calendar.month.SimpleWeekView;
@@ -49,7 +50,7 @@ public class CalendarDatabase {
 	 *            How to order the rows as an SQL ORDER BY statement
 	 * @return A Cursor of instances matching the selection
 	 */
-	public static final Cursor instancesQuery(ContentResolver cr,
+	public static final Cursor instancesQuery0(ContentResolver cr,
 			String[] projection, int startDay, int endDay, String selection,
 			String[] selectionArgs, String orderBy) {
 		String WHERE_CALENDARS_SELECTED = Calendars.VISIBLE + "=?";
@@ -81,7 +82,8 @@ public class CalendarDatabase {
 		public void onLoadFinished(Uri uri, Cursor data);
 	}
 
-	public static class Loader implements LoaderManager.LoaderCallbacks<Cursor> {
+	public static class CalendarLoader implements
+			LoaderManager.LoaderCallbacks<Cursor> {
 
 		private static final int WEEKS_BUFFER = 1;
 		private Context mContext;
@@ -111,17 +113,18 @@ public class CalendarDatabase {
 		 * public static Loader create(LoaderManager lm) { return new
 		 * Loader(lm); }
 		 */
-		public static Loader create(Context ctx, LoaderManager lm, Time day,
-				OnLoaderListener listener) {
-			return (new Loader(ctx, lm)).setSelectDay(day).init(listener);
+		public static CalendarLoader create(Context ctx, LoaderManager lm,
+				Time day, OnLoaderListener listener) {
+			return (new CalendarLoader(ctx, lm)).setSelectDay(day).init(
+					listener);
 		}
 
-		private Loader(Context ctx, LoaderManager lm) {
+		private CalendarLoader(Context ctx, LoaderManager lm) {
 			mContext = ctx;
 			mLoaderManager = lm;
 		}
 
-		public Loader init(OnLoaderListener listener) {
+		public CalendarLoader init(OnLoaderListener listener) {
 			mLoader = (CursorLoader) mLoaderManager.initLoader(0, null, this);
 			setOnLoaderListener(listener);
 			return this;
@@ -131,7 +134,7 @@ public class CalendarDatabase {
 			setOnLoaderListener(null);
 		}
 
-		public Loader setSelectDay(Time day) {
+		public CalendarLoader setSelectDay(Time day) {
 			mFirstLoadedJulianDay = Time.getJulianDay(day.toMillis(true),
 					day.gmtoff) - (mNumWeeks * 7 / 2);
 			return this;
@@ -267,6 +270,51 @@ public class CalendarDatabase {
 
 		public void setOnLoaderListener(OnLoaderListener listener) {
 			mOnLoaderListener = listener;
+		}
+	}
+
+	// ------------------------------------------------------------------------------
+	// For personal daily information.
+	// ------------------------------------------------------------------------------
+	public static final Cursor instancesQuery(ContentResolver cr,
+			String[] projection, int startDay, int endDay, String selection,
+			String[] selectionArgs, String orderBy) {
+
+		return null;
+	}
+
+	public static class Loader {
+		public static Loader create(Context ctx, LoaderManager lm, Time day,
+				OnLoaderListener listener) {
+			return (new Loader(ctx, lm)).setSelectDay(day).init(listener);
+		}
+
+		private Loader(Context ctx, LoaderManager lm) {
+		}
+
+		public Loader init(OnLoaderListener listener) {
+			listener.onLoadFinished(null, new PersonalDailyInformationCursor());
+			return this;
+		}
+
+		public void uninit() {
+		}
+
+		public Loader setSelectDay(Time day) {
+			return this;
+		}
+
+		// XXX The function isn't called.
+		public void start(int julianDay, boolean isHide) {
+		}
+
+		public void stop() {
+		}
+
+		public void forceLoad() {
+		}
+
+		public void setSelection(boolean isHide) {
 		}
 	}
 }

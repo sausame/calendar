@@ -174,6 +174,9 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
 
     // Extract range of julian days from URI
     private void updateLoadedDays() {
+    	if (mEventUri == null) {
+    		return;
+    	}
         List<String> pathSegments = mEventUri.getPathSegments();
         int size = pathSegments.size();
         if (size <= 2) {
@@ -339,11 +342,13 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
                 mEventUri = uri;
                 updateLoadedDays();
             }
-            if (uri.compareTo(mEventUri) != 0) {
+            
+            if (uri != null && uri.compareTo(mEventUri) != 0) {
                 // We've started a new query since this loader ran so ignore the
                 // result
                 return;
             }
+            
             ArrayList<Event> events = new ArrayList<Event>();
             Event.buildEventsFromCursor(
                     events, data, mContext, mFirstLoadedJulianDay, mLastLoadedJulianDay);

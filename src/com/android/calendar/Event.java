@@ -33,8 +33,12 @@ import android.text.format.DateUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.android.calendar.infor.PersonalDailyInformation;
 
 // TODO: should Event be Parcelable so it can be passed via Intents?
 public class Event implements Cloneable {
@@ -314,7 +318,7 @@ public class Event implements Cloneable {
         // get sorted in the correct order
         cEvents.moveToPosition(-1);
         while (cEvents.moveToNext()) {
-            Event e = generateEventFromCursor(cEvents);
+            Event e = generateEventFromCursor(context, cEvents);
             if (e.startDay > endDay || e.endDay < startDay) {
                 continue;
             }
@@ -595,4 +599,71 @@ public class Event implements Cloneable {
         // Use >= so we'll pick up Exchange allday events
         return allDay || endMillis - startMillis >= DateUtils.DAY_IN_MILLIS;
     }
+    
+	// ------------------------------------------------------------------------------
+	// For personal daily information.
+	// ------------------------------------------------------------------------------
+	private PersonalDailyInformation mInfor = null;
+
+	public PersonalDailyInformation getInfor() {
+		return mInfor;
+	}
+
+	public final static int LEVEL_COLOR[] = { android.R.color.holo_green_light,
+			android.R.color.holo_blue_light, android.R.color.holo_orange_light,
+			android.R.color.holo_orange_light, android.R.color.holo_red_light };
+
+	private static int getColorFromLevel(int level) {
+		return LEVEL_COLOR[level % LEVEL_COLOR.length];
+	}
+
+	private static Event generateEventFromInfor(Context context,
+			PersonalDailyInformation infor) {
+		Event e = new Event();
+
+		e.id = 0;
+		e.title = infor.name + " (" + infor.level + ")";
+		e.location = "";
+		e.allDay = true;
+		e.organizer = "";
+		e.guestsCanModify = false;
+
+		if (e.title == null || e.title.length() == 0) {
+			e.title = mNoTitleString;
+		}
+
+		e.color = Utils.getDisplayColorFromColor(context.getResources()
+				.getColor(getColorFromLevel(infor.level)));
+
+		long eStart = infor.whichDay.getTime();
+		long eEnd = eStart;
+
+		Calendar calendar = new GregorianCalendar();
+		calendar.setTime(infor.whichDay);
+
+		int eDate = calendar.get(Calendar.DATE);
+
+		e.startMillis = eStart;
+		e.startTime = 0;
+		e.startDay = eDate;
+
+		e.endMillis = eEnd;
+		e.endTime = 1440;
+		e.endDay = eDate;
+
+		e.hasAlarm = false;
+
+		// Check if this is a repeating event
+		e.isRepeating = false;
+
+		e.selfAttendeeStatus = 0;
+
+		return e;
+	}
+
+	private static Event generateEventFromCursor(Context context, Cursor cEvents) {
+		PersonalDailyInformation infor = PersonalDailyInformation
+				.parsePersonalDailyInformation(cEvents);
+		return generateEventFromInfor(context, infor);
+	}
 }

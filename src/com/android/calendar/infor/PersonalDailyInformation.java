@@ -15,6 +15,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.database.Cursor;
+
 public class PersonalDailyInformation implements Serializable {
 
 	private static final String TAG = "PersonalDailyInformation";
@@ -205,6 +207,19 @@ public class PersonalDailyInformation implements Serializable {
 		}
 
 		return info;
+	}
+	
+	public static PersonalDailyInformation parsePersonalDailyInformation(
+			Cursor cEvents) {
+		try {
+			String jsonBuf = cEvents.getString(0);
+			JSONObject object = new JSONObject(jsonBuf);
+			return parsePersonalDailyInformation(object);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		return null;
 	}
 
 	public String toString() {
