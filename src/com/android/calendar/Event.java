@@ -620,11 +620,11 @@ public class Event implements Cloneable {
 		return LEVEL_COLOR[level % LEVEL_COLOR.length];
 	}
 
-	private static Event generateEventFromInfor(Context context,
+	private static Event generateEventFromInfor(Context context, long id,
 			PersonalDailyInformation infor) {
 		Event e = new Event();
 
-		e.id = 0;
+		e.id = id;
 		e.title = infor.name + " (" + infor.level + ")";
 		e.location = "";
 		e.allDay = true;
@@ -667,6 +667,6 @@ public class Event implements Cloneable {
 	private static Event generateEventFromCursor(Context context, Cursor cEvents) {
 		PersonalDailyInformation infor = PersonalDailyInformation
 				.parsePersonalDailyInformation(cEvents);
-		return generateEventFromInfor(context, infor);
+		return generateEventFromInfor(context, cEvents.getPosition(), infor);
 	}
 }

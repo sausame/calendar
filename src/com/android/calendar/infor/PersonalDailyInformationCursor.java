@@ -120,6 +120,7 @@ public class PersonalDailyInformationCursor implements Cursor {
 	}
 
 	public boolean moveToNext() {
+		mPosition ++;
 		mCurrentInfor = mManager.getPersonalDailyInformation();
 		return (mCurrentInfor != null);
 	}
