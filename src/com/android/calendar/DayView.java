@@ -20,6 +20,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ContentResolver;
@@ -2164,7 +2165,8 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
         initAllDayHeights();
     }
 
-    @Override
+    @SuppressLint("WrongCall")
+	@Override
     protected void onDraw(Canvas canvas) {
         if (mRemeasure) {
             remeasure(getWidth(), getHeight());
