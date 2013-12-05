@@ -461,10 +461,10 @@ public class Event implements Cloneable {
     private static long removeAlldayActiveEvents(Event event, Iterator<Event> iter, long colMask) {
         // Remove the inactive allday events. An event on the active list
         // becomes inactive when the end day is less than the current event's
-        // start day.
+        // start day. Or the start day is more than the current event's end day.
         while (iter.hasNext()) {
             final Event active = iter.next();
-            if (active.endDay < event.startDay) {
+            if (active.endDay < event.startDay || active.startDay > event.endDay) {
                 colMask &= ~(1L << active.getColumn());
                 iter.remove();
             }
@@ -512,6 +512,15 @@ public class Event implements Cloneable {
         Log.e("Cal", "+   endTime = " + endTime);
         Log.e("Cal", "+ organizer = " + organizer);
         Log.e("Cal", "+  guestwrt = " + guestsCanModify);
+    }
+    
+    public final void show() {
+    	Log.v("+-----------------------------------------+");
+        Log.v("+        id = " + id);
+        Log.v("+     title = " + title);
+    	Log.v("+  position = [" + left + ", " + top + ", " + right + ", " + bottom + "]");
+    	Log.v("+    column = " + mColumn);
+    	Log.v("+ MaxColumn = " + mMaxColumns);
     }
 
     public final boolean intersects(int julianDay, int startMinute,
@@ -566,7 +575,7 @@ public class Event implements Cloneable {
         return text;
     }
 
-    public void setColumn(int column) {
+    private void setColumn(int column) {
         mColumn = column;
     }
 
@@ -625,7 +634,7 @@ public class Event implements Cloneable {
 		Event e = new Event();
 
 		e.id = id;
-		e.title = infor.name + " (" + infor.level + ")";
+		e.title = infor.name + " (" + id + ")";
 		e.location = "";
 		e.allDay = true;
 		e.organizer = "";
