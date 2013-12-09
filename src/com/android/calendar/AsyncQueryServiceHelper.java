@@ -50,6 +50,7 @@ public class AsyncQueryServiceHelper extends IntentService {
     protected static class OperationInfo implements Delayed{
         public int token; // Used for cancel
         public int op;
+        public Context context;
         public ContentResolver resolver;
         public Uri uri;
         public String authority;
@@ -157,6 +158,7 @@ public class AsyncQueryServiceHelper extends IntentService {
      */
     static public void queueOperation(Context context, OperationInfo args) {
         // Set the schedule time for execution based on the desired delay.
+    	args.context = context;
         args.calculateScheduledTime();
 
         synchronized (sWorkQueue) {
@@ -275,80 +277,24 @@ public class AsyncQueryServiceHelper extends IntentService {
         if (AsyncQueryService.localLOGV) {
             Log.d(TAG, "onHandleIntent: " + args);
         }
+        
+        //args = CalendarDatabase.execute(args);
+        args = CalendarDatabase.execute(args.context, args);
+        
+        /*
+         * passing the original token value back to the caller on top of the
+         * event values in arg1.
+         */
+        Message reply = args.handler.obtainMessage(args.token);
+        reply.obj = args;
+        reply.arg1 = args.op;
 
-        ContentResolver resolver = args.resolver;
-        if (resolver != null) {
-
-            switch (args.op) {
-                case Operation.EVENT_ARG_QUERY:
-                    Cursor cursor;
-                    try {
-                        cursor = resolver.query(args.uri, args.projection, args.selection,
-                                args.selectionArgs, args.orderBy);
-                        /*
-                         * Calling getCount() causes the cursor window to be
-                         * filled, which will make the first access on the main
-                         * thread a lot faster
-                         */
-                        if (cursor != null) {
-                            cursor.getCount();
-                        }
-                    } catch (Exception e) {
-                        Log.w(TAG, e.toString());
-                        cursor = null;
-                    }
-
-                    args.result = cursor;
-                    break;
-
-                case Operation.EVENT_ARG_INSERT:
-                    args.result = resolver.insert(args.uri, args.values);
-                    break;
-
-                case Operation.EVENT_ARG_UPDATE:
-                    args.result = resolver.update(args.uri, args.values, args.selection,
-                            args.selectionArgs);
-                    break;
-
-                case Operation.EVENT_ARG_DELETE:
-                    try {
-                        args.result = resolver.delete(args.uri, args.selection, args.selectionArgs);
-                    } catch (IllegalArgumentException e) {
-                        Log.w(TAG, "Delete failed.");
-                        Log.w(TAG, e.toString());
-                        args.result = 0;
-                    }
-
-                    break;
-
-                case Operation.EVENT_ARG_BATCH:
-                    try {
-                        args.result = resolver.applyBatch(args.authority, args.cpo);
-                    } catch (RemoteException e) {
-                        Log.e(TAG, e.toString());
-                        args.result = null;
-                    } catch (OperationApplicationException e) {
-                        Log.e(TAG, e.toString());
-                        args.result = null;
-                    }
-                    break;
-            }
-
-            /*
-             * passing the original token value back to the caller on top of the
-             * event values in arg1.
-             */
-            Message reply = args.handler.obtainMessage(args.token);
-            reply.obj = args;
-            reply.arg1 = args.op;
-
-            if (AsyncQueryService.localLOGV) {
-                Log.d(TAG, "onHandleIntent: op=" + Operation.opToChar(args.op) + ", token="
-                        + reply.what);
-            }
-
-            reply.sendToTarget();
+        if (AsyncQueryService.localLOGV) {
+            Log.d(TAG, "onHandleIntent: op=" + Operation.opToChar(args.op) + ", token="
+                    + reply.what);
         }
+
+        reply.sendToTarget();
     }
 
     @Override

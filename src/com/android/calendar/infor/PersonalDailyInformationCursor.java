@@ -28,7 +28,7 @@ public class PersonalDailyInformationCursor implements Cursor {
 	private int mPosition = 0;
 
 	public int getColumnCount() {
-		throw new UnsupportedOperationException("unimplemented mock method");
+		return COLUMN_NAMES.length;
 	}
 
 	public int getColumnIndex(String columnName) {
@@ -43,8 +43,9 @@ public class PersonalDailyInformationCursor implements Cursor {
 		throw new UnsupportedOperationException("unimplemented mock method");
 	}
 
+	final static String COLUMN_NAMES[] = {"JSON_CODE"};
 	public String[] getColumnNames() {
-		throw new UnsupportedOperationException("unimplemented mock method");
+		return COLUMN_NAMES;
 	}
 
 	public int getCount() {
@@ -112,7 +113,7 @@ public class PersonalDailyInformationCursor implements Cursor {
 	}
 
 	public boolean moveToFirst() {
-		throw new UnsupportedOperationException("unimplemented mock method");
+		return moveToPosition(-1);
 	}
 
 	public boolean moveToLast() {

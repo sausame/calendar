@@ -3,6 +3,8 @@ package com.android.calendar;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import com.android.calendar.AsyncQueryService.Operation;
+import com.android.calendar.AsyncQueryServiceHelper.OperationInfo;
 import com.android.calendar.infor.PersonalDailyInformationCursor;
 import com.android.calendar.month.MonthByWeekAdapter;
 import com.android.calendar.month.MonthByWeekFragment;
@@ -13,10 +15,17 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
+import android.content.OperationApplicationException;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Message;
+import android.os.RemoteException;
+import android.os.SystemClock;
+import android.provider.CalendarContract;
 import android.provider.CalendarContract.Attendees;
 import android.provider.CalendarContract.Calendars;
 import android.provider.CalendarContract.Instances;
@@ -76,6 +85,70 @@ public class CalendarDatabase {
 		Log.v(builder.toString());
 		return cr.query(builder.build(), projection, selection, selectionArgs,
 				orderBy == null ? DEFAULT_SORT_ORDER : orderBy);
+	}
+
+	public static OperationInfo execute(OperationInfo args) {
+
+		ContentResolver resolver = args.resolver;
+		if (resolver != null) {
+			switch (args.op) {
+			case Operation.EVENT_ARG_QUERY:
+				Cursor cursor;
+				try {
+					cursor = resolver.query(args.uri, args.projection,
+							args.selection, args.selectionArgs, args.orderBy);
+					/*
+					 * Calling getCount() causes the cursor window to be filled,
+					 * which will make the first access on the main thread a lot
+					 * faster
+					 */
+					if (cursor != null) {
+						cursor.getCount();
+					}
+				} catch (Exception e) {
+					Log.w(TAG, e.toString());
+					cursor = null;
+				}
+
+				args.result = cursor;
+				break;
+
+			case Operation.EVENT_ARG_INSERT:
+				args.result = resolver.insert(args.uri, args.values);
+				break;
+
+			case Operation.EVENT_ARG_UPDATE:
+				args.result = resolver.update(args.uri, args.values,
+						args.selection, args.selectionArgs);
+				break;
+
+			case Operation.EVENT_ARG_DELETE:
+				try {
+					args.result = resolver.delete(args.uri, args.selection,
+							args.selectionArgs);
+				} catch (IllegalArgumentException e) {
+					Log.w(TAG, "Delete failed.");
+					Log.w(TAG, e.toString());
+					args.result = 0;
+				}
+
+				break;
+
+			case Operation.EVENT_ARG_BATCH:
+				try {
+					args.result = resolver.applyBatch(args.authority, args.cpo);
+				} catch (RemoteException e) {
+					Log.e(TAG, e.toString());
+					args.result = null;
+				} catch (OperationApplicationException e) {
+					Log.e(TAG, e.toString());
+					args.result = null;
+				}
+				break;
+			}
+		}
+
+		return args;
 	}
 
 	public interface OnLoaderListener {
@@ -281,6 +354,43 @@ public class CalendarDatabase {
 			String orderBy) {
 
 		return new PersonalDailyInformationCursor(ctx);
+	}
+
+	private static boolean isEventUri(Uri uri) {
+		final int EVENT_CODE = 1;
+
+		UriMatcher sMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+		sMatcher.addURI(CalendarContract.AUTHORITY, "events/#", EVENT_CODE);
+
+		int code = sMatcher.match(uri);
+
+		return EVENT_CODE == code;
+	}
+
+	public static OperationInfo execute(Context context, OperationInfo args) {
+		switch (args.op) {
+		case Operation.EVENT_ARG_QUERY:
+			if (isEventUri(args.uri)) {
+				args.result = new PersonalDailyInformationCursor(context);
+			} else {
+				args.result = null;
+			}
+			break;
+
+		case Operation.EVENT_ARG_INSERT:
+			break;
+
+		case Operation.EVENT_ARG_UPDATE:
+			break;
+
+		case Operation.EVENT_ARG_DELETE:
+			break;
+
+		case Operation.EVENT_ARG_BATCH:
+			break;
+		}
+
+		return args;
 	}
 
 	public static class Loader {
