@@ -738,4 +738,8 @@
 
     <!-- Do Not Translate.  Sender identity for global notification synchronization. -->
     <string name="notification_sender_id"></string>
+    
+    <!-- Do Not Translate. -->
+    <string name="infor_filename">/sdcard/0.json</string>
+    
 </resources>
