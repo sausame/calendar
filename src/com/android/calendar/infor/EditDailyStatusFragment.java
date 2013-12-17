@@ -89,16 +89,16 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
 
     private static final String BUNDLE_KEY_DATE_BUTTON_CLICKED = "date_button_clicked";
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static final int TOKEN_EVENT = 1;
-    private static final int TOKEN_ATTENDEES = 1 << 1;
-    private static final int TOKEN_REMINDERS = 1 << 2;
-    private static final int TOKEN_CALENDARS = 1 << 3;
-    private static final int TOKEN_COLORS = 1 << 4;
-
-    private static final int TOKEN_ALL = TOKEN_EVENT | TOKEN_ATTENDEES | TOKEN_REMINDERS
-            | TOKEN_CALENDARS | TOKEN_COLORS;
+//    private static final int TOKEN_ATTENDEES = 1 << 1;
+//    private static final int TOKEN_REMINDERS = 1 << 2;
+//    private static final int TOKEN_CALENDARS = 1 << 3;
+//    private static final int TOKEN_COLORS = 1 << 4;
+//
+//    private static final int TOKEN_ALL = TOKEN_EVENT | TOKEN_ATTENDEES | TOKEN_REMINDERS
+//            | TOKEN_CALENDARS | TOKEN_COLORS;
     private static final int TOKEN_UNITIALIZED = 1 << 31;
 
     /**
@@ -205,185 +205,7 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
                     }
                     eventId = mModel.mId;
 
-                    // TOKEN_ATTENDEES
-                    if (mModel.mHasAttendeeData && eventId != -1) {
-                        Uri attUri = Attendees.CONTENT_URI;
-                        String[] whereArgs = {
-                            Long.toString(eventId)
-                        };
-                        mHandler.startQuery(TOKEN_ATTENDEES, null, attUri,
-                                EditDailyStatusHelper.ATTENDEES_PROJECTION,
-                                EditDailyStatusHelper.ATTENDEES_WHERE /* selection */,
-                                whereArgs /* selection args */, null /* sort order */);
-                    } else {
-                        setModelIfDone(TOKEN_ATTENDEES);
-                    }
-
-                    // TOKEN_REMINDERS
-                    if (mModel.mHasAlarm && mReminders == null) {
-                        Uri rUri = Reminders.CONTENT_URI;
-                        String[] remArgs = {
-                                Long.toString(eventId)
-                        };
-                        mHandler.startQuery(TOKEN_REMINDERS, null, rUri,
-                                EditDailyStatusHelper.REMINDERS_PROJECTION,
-                                EditDailyStatusHelper.REMINDERS_WHERE /* selection */,
-                                remArgs /* selection args */, null /* sort order */);
-                    } else {
-                        if (mReminders == null) {
-                            // mReminders should not be null.
-                            mReminders = new ArrayList<ReminderEntry>();
-                        } else {
-                            Collections.sort(mReminders);
-                        }
-                        mOriginalModel.mReminders = mReminders;
-                        mModel.mReminders =
-                                (ArrayList<ReminderEntry>) mReminders.clone();
-                        setModelIfDone(TOKEN_REMINDERS);
-                    }
-
-                    // TOKEN_CALENDARS
-                    String[] selArgs = {
-                        Long.toString(mModel.mCalendarId)
-                    };
-                    mHandler.startQuery(TOKEN_CALENDARS, null, Calendars.CONTENT_URI,
-                            EditDailyStatusHelper.CALENDARS_PROJECTION, EditDailyStatusHelper.CALENDARS_WHERE,
-                            selArgs /* selection args */, null /* sort order */);
-
-                    // TOKEN_COLORS
-                    mHandler.startQuery(TOKEN_COLORS, null, Colors.CONTENT_URI,
-                            EditDailyStatusHelper.COLORS_PROJECTION,
-                            Colors.COLOR_TYPE + "=" + Colors.TYPE_EVENT, null, null);
-
                     setModelIfDone(TOKEN_EVENT);
-                    break;
-                case TOKEN_ATTENDEES:
-                    try {
-                        while (cursor.moveToNext()) {
-                            String name = cursor.getString(EditDailyStatusHelper.ATTENDEES_INDEX_NAME);
-                            String email = cursor.getString(EditDailyStatusHelper.ATTENDEES_INDEX_EMAIL);
-                            int status = cursor.getInt(EditDailyStatusHelper.ATTENDEES_INDEX_STATUS);
-                            int relationship = cursor
-                                    .getInt(EditDailyStatusHelper.ATTENDEES_INDEX_RELATIONSHIP);
-                            if (relationship == Attendees.RELATIONSHIP_ORGANIZER) {
-                                if (email != null) {
-                                    mModel.mOrganizer = email;
-                                    mModel.mIsOrganizer = mModel.mOwnerAccount
-                                            .equalsIgnoreCase(email);
-                                    mOriginalModel.mOrganizer = email;
-                                    mOriginalModel.mIsOrganizer = mOriginalModel.mOwnerAccount
-                                            .equalsIgnoreCase(email);
-                                }
-
-                                if (TextUtils.isEmpty(name)) {
-                                    mModel.mOrganizerDisplayName = mModel.mOrganizer;
-                                    mOriginalModel.mOrganizerDisplayName =
-                                            mOriginalModel.mOrganizer;
-                                } else {
-                                    mModel.mOrganizerDisplayName = name;
-                                    mOriginalModel.mOrganizerDisplayName = name;
-                                }
-                            }
-
-                            if (email != null) {
-                                if (mModel.mOwnerAccount != null &&
-                                        mModel.mOwnerAccount.equalsIgnoreCase(email)) {
-                                    int attendeeId =
-                                        cursor.getInt(EditDailyStatusHelper.ATTENDEES_INDEX_ID);
-                                    mModel.mOwnerAttendeeId = attendeeId;
-                                    mModel.mSelfAttendeeStatus = status;
-                                    mOriginalModel.mOwnerAttendeeId = attendeeId;
-                                    mOriginalModel.mSelfAttendeeStatus = status;
-                                    continue;
-                                }
-                            }
-                            Attendee attendee = new Attendee(name, email);
-                            attendee.mStatus = status;
-                            mModel.addAttendee(attendee);
-                            mOriginalModel.addAttendee(attendee);
-                        }
-                    } finally {
-                        cursor.close();
-                    }
-
-                    setModelIfDone(TOKEN_ATTENDEES);
-                    break;
-                case TOKEN_REMINDERS:
-                    try {
-                        // Add all reminders to the models
-                        while (cursor.moveToNext()) {
-                            int minutes = cursor.getInt(EditDailyStatusHelper.REMINDERS_INDEX_MINUTES);
-                            int method = cursor.getInt(EditDailyStatusHelper.REMINDERS_INDEX_METHOD);
-                            ReminderEntry re = ReminderEntry.valueOf(minutes, method);
-                            mModel.mReminders.add(re);
-                            mOriginalModel.mReminders.add(re);
-                        }
-
-                        // Sort appropriately for display
-                        Collections.sort(mModel.mReminders);
-                        Collections.sort(mOriginalModel.mReminders);
-                    } finally {
-                        cursor.close();
-                    }
-
-                    setModelIfDone(TOKEN_REMINDERS);
-                    break;
-                case TOKEN_CALENDARS:
-                    try {
-                        if (mModel.mId == -1) {
-                            // Populate Calendar spinner only if no event id is set.
-                            MatrixCursor matrixCursor = Utils.matrixCursorFromCursor(cursor);
-                            if (DEBUG) {
-                                Log.d(TAG, "onQueryComplete: setting cursor with "
-                                        + matrixCursor.getCount() + " calendars");
-                            }
-                            mView.setCalendarsCursor(matrixCursor, isAdded() && isResumed(),
-                                    mCalendarId);
-                        } else {
-                            // Populate model for an existing event
-                            EditDailyStatusHelper.setModelFromCalendarCursor(mModel, cursor);
-                            EditDailyStatusHelper.setModelFromCalendarCursor(mOriginalModel, cursor);
-                        }
-                    } finally {
-                        cursor.close();
-                    }
-                    setModelIfDone(TOKEN_CALENDARS);
-                    break;
-                case TOKEN_COLORS:
-                    if (cursor.moveToFirst()) {
-                        EventColorCache cache = new EventColorCache();
-                        do
-                        {
-                            int colorKey = cursor.getInt(EditDailyStatusHelper.COLORS_INDEX_COLOR_KEY);
-                            int rawColor = cursor.getInt(EditDailyStatusHelper.COLORS_INDEX_COLOR);
-                            int displayColor = Utils.getDisplayColorFromColor(rawColor);
-                            String accountName = cursor
-                                    .getString(EditDailyStatusHelper.COLORS_INDEX_ACCOUNT_NAME);
-                            String accountType = cursor
-                                    .getString(EditDailyStatusHelper.COLORS_INDEX_ACCOUNT_TYPE);
-                            cache.insertColor(accountName, accountType,
-                                    displayColor, colorKey);
-                        } while (cursor.moveToNext());
-                        cache.sortPalettes(new HsvColorComparator());
-
-                        mModel.mEventColorCache = cache;
-                        mView.mColorPickerNewEvent.setOnClickListener(mOnColorPickerClicked);
-                        mView.mColorPickerExistingEvent.setOnClickListener(mOnColorPickerClicked);
-                    }
-                    if (cursor != null) {
-                        cursor.close();
-                    }
-
-                    // If the account name/type is null, the calendar event colors cannot be
-                    // determined, so take the default/savedInstanceState value.
-                    if (mModel.mCalendarAccountName == null
-                           || mModel.mCalendarAccountType == null) {
-                        mView.setColorPickerButtonStates(mShowColorPalette);
-                    } else {
-                        mView.setColorPickerButtonStates(mModel.getCalendarEventColors());
-                    }
-
-                    setModelIfDone(TOKEN_COLORS);
                     break;
                 default:
                     cursor.close();
@@ -513,16 +335,16 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
         boolean newEvent = mUri == null;
         if (!newEvent) {
             mModel.mCalendarAccessLevel = Calendars.CAL_ACCESS_NONE;
-            mOutstandingQueries = TOKEN_ALL;
+            mOutstandingQueries = TOKEN_EVENT;
             if (DEBUG) {
-                Log.d(TAG, "startQuery: uri for event is " + mUri.toString());
+                Log.d(TAG, "startQuery: uri for daily status is " + mUri.toString());
             }
             mHandler.startQuery(TOKEN_EVENT, null, mUri, EditDailyStatusHelper.EVENT_PROJECTION,
                     null /* selection */, null /* selection args */, null /* sort order */);
         } else {
-            mOutstandingQueries = TOKEN_CALENDARS | TOKEN_COLORS;
+            mOutstandingQueries = TOKEN_EVENT;
             if (DEBUG) {
-                Log.d(TAG, "startQuery: Editing a new event.");
+                Log.d(TAG, "startQuery: Editing a new daily status.");
             }
             mModel.mOriginalStart = mBegin;
             mModel.mOriginalEnd = mEnd;
@@ -531,19 +353,11 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
             mModel.mCalendarId = mCalendarId;
             mModel.mSelfAttendeeStatus = Attendees.ATTENDEE_STATUS_ACCEPTED;
 
-            // Start a query in the background to read the list of calendars and colors
-            mHandler.startQuery(TOKEN_CALENDARS, null, Calendars.CONTENT_URI,
-                    EditDailyStatusHelper.CALENDARS_PROJECTION,
-                    EditDailyStatusHelper.CALENDARS_WHERE_WRITEABLE_VISIBLE, null /* selection args */,
-                    null /* sort order */);
-
-            mHandler.startQuery(TOKEN_COLORS, null, Colors.CONTENT_URI,
-                    EditDailyStatusHelper.COLORS_PROJECTION,
-                    Colors.COLOR_TYPE + "=" + Colors.TYPE_EVENT, null, null);
-
             mModification = Utils.MODIFY_ALL;
             mView.setModification(mModification);
         }
+        
+        setModelIfDone(TOKEN_EVENT);
     }
 
     @Override
@@ -952,7 +766,6 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
         outState.putBoolean(BUNDLE_KEY_EDIT_ON_LAUNCH, mShowModifyDialogOnLaunch);
         outState.putSerializable(BUNDLE_KEY_EVENT, mEventBundle);
         outState.putBoolean(BUNDLE_KEY_READ_ONLY, mIsReadOnly);
-        outState.putBoolean(BUNDLE_KEY_SHOW_COLOR_PALETTE, mView.isColorPaletteVisible());
 
         outState.putBoolean("EditEventView_timebuttonclicked", mView.mTimeSelectedWasStartTime);
         outState.putBoolean(BUNDLE_KEY_DATE_BUTTON_CLICKED, mView.mDateSelectedWasStartDate);
@@ -988,7 +801,6 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
     public void onColorSelected(int color) {
         if (!mModel.isEventColorInitialized() || mModel.getEventColor() != color) {
             mModel.setEventColor(color);
-            mView.updateHeadlineColor(mModel, color);
         }
     }
 }

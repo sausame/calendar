@@ -36,13 +36,14 @@ import com.android.calendar.CalendarEventModel.ReminderEntry;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
+import com.android.calendar.infor.EditDailyStatusFragment;
 
 import java.util.ArrayList;
 
 public class EditEventActivity extends AbstractCalendarActivity {
     private static final String TAG = "EditEventActivity";
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private static final String BUNDLE_KEY_EVENT_ID = "key_event_id";
 
@@ -52,7 +53,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
 
     private static boolean mIsMultipane;
 
-    private EditEventFragment mEditFragment;
+    private EditDailyStatusFragment mEditFragment;
 
     private ArrayList<ReminderEntry> mReminders;
 
@@ -73,7 +74,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
         mEventColor = getIntent().getIntExtra(EXTRA_EVENT_COLOR, -1);
 
 
-        mEditFragment = (EditEventFragment) getFragmentManager().findFragmentById(R.id.main_frame);
+        mEditFragment = (EditDailyStatusFragment) getFragmentManager().findFragmentById(R.id.main_frame);
 
         mIsMultipane = Utils.getConfigBool(this, R.bool.multiple_pane_config);
 
@@ -97,7 +98,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
                 intent = getIntent();
             }
 
-            mEditFragment = new EditEventFragment(mEventInfo, mReminders, mEventColorInitialized,
+            mEditFragment = new EditDailyStatusFragment(mEventInfo, mReminders, mEventColorInitialized,
                     mEventColor, false, intent);
 
             mEditFragment.mShowModifyDialogOnLaunch = getIntent().getBooleanExtra(
