@@ -16,6 +16,7 @@
 
 package com.android.calendar.event;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Fragment;
@@ -70,6 +71,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 
+@SuppressLint("ValidFragment")
 public class EditEventFragment extends Fragment implements EventHandler, OnColorSelectedListener {
     private static final String TAG = "EditEventActivity";
     private static final String COLOR_PICKER_DIALOG_TAG = "ColorPickerDialog";
