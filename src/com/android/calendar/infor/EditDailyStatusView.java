@@ -818,8 +818,8 @@ public class EditDailyStatusView implements View.OnClickListener, DialogInterfac
         mEndHomeGroup = view.findViewById(R.id.to_row_home_tz);
         mAttendeesList = (MultiAutoCompleteTextView) view.findViewById(R.id.attendees);
 
-        mColorPickerNewEvent = view.findViewById(R.id.change_color_new_event);
-        mColorPickerExistingEvent = view.findViewById(R.id.change_color_existing_event);
+        mColorPickerNewEvent = view.findViewById(R.id.change_color_new_daily_status);
+        mColorPickerExistingEvent = view.findViewById(R.id.change_color_existing_daily_status);
 
         mTitleTextView.setTag(mTitleTextView.getBackground());
         mLocationTextView.setTag(mLocationTextView.getBackground());
