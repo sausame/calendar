@@ -322,6 +322,11 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mTitleTextView.setTag(mTitleTextView.getBackground());
 		mDescriptionTextView.setTag(mDescriptionTextView.getBackground());
 
+        mOriginalPadding[0] = mTitleTextView.getPaddingLeft();
+        mOriginalPadding[1] = mTitleTextView.getPaddingTop();
+        mOriginalPadding[2] = mTitleTextView.getPaddingRight();
+        mOriginalPadding[3] = mTitleTextView.getPaddingBottom();
+
 		mEditViewList.add(mTitleTextView);
 		mEditViewList.add(mDescriptionTextView);
 
