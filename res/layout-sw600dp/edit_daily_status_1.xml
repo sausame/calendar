@@ -31,7 +31,6 @@
         <Spinner
             android:id="@+id/serious"
             style="@style/TextAppearance.EditEvent_Spinner"
-            android:entries="@array/availability"
             android:prompt="@string/serious_label" />
     </TableRow>
 

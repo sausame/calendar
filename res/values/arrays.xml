@@ -306,4 +306,14 @@
         <item >on every fourth Saturday</item>
         <item >on every last Saturday</item>
     </string-array>
+
+    <!-- Repeat a monthly event on the same nth day of every Saturday. [CHAR LIMIT=30] -->
+    <string-array name="serious_level_labels">
+        <item >Lighter</item>
+        <item >Light</item>
+        <item >Serious</item>
+        <item >More Serious</item>
+        <item >Much Serious</item>
+    </string-array>
+
 </resources>

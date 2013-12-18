@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentManager;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -32,12 +33,17 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
 import android.text.format.Time;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.android.calendar.CalendarEventModel;
@@ -68,6 +74,9 @@ public class EditDailyStatusView implements View.OnClickListener,
 	ArrayList<View> mEditOnlyList = new ArrayList<View>();
 	ArrayList<View> mEditViewList = new ArrayList<View>();
 	ArrayList<View> mViewOnlyList = new ArrayList<View>();
+
+	private Spinner mLevelSpinner;
+	private LevelAdapter mLevelAdapter;
 
 	TextView mLoadingMessage;
 	ScrollView mScrollView;
@@ -322,6 +331,22 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mTitleTextView.setTag(mTitleTextView.getBackground());
 		mDescriptionTextView.setTag(mDescriptionTextView.getBackground());
 
+		mLevelSpinner = (Spinner) view.findViewById(R.id.serious);
+
+		mLevelAdapter = new LevelAdapter(activity);
+		mLevelSpinner.setAdapter(mLevelAdapter);
+		mLevelSpinner.setSelection(3);
+		mLevelSpinner
+				.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+					public void onItemSelected(AdapterView<?> parent,
+							View view, int position, long id) {
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> arg0) {
+					}
+				});
+
         mOriginalPadding[0] = mTitleTextView.getPaddingLeft();
         mOriginalPadding[1] = mTitleTextView.getPaddingTop();
         mOriginalPadding[2] = mTitleTextView.getPaddingRight();
@@ -335,7 +360,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mEditOnlyList.add(mBodyStatusesGroup);
 
 		mBodyStatusesContainer = (LinearLayout) view
-				.findViewById(R.id.reminder_items_container);
+				.findViewById(R.id.body_status_items_container);
 
 		mIsMultipane = activity.getResources().getBoolean(R.bool.tablet_config);
 		mWhenTime = new Time();
@@ -723,4 +748,88 @@ public class EditDailyStatusView implements View.OnClickListener,
 	@Override
 	public void onNothingSelected(AdapterView<?> parent) {
 	}
+
+	// ====================================================================
+	public class LevelAdapter extends BaseAdapter {
+		private Context mContext;
+
+		public LevelAdapter(Context context) {
+			mContext = context;
+		}
+
+		// ====================================================================
+		@Override
+		public int getCount() {
+			return mResIDGroupOfBackground.length;
+		}
+
+		@Override
+		public Object getItem(int id) {
+			return null;
+		}
+
+		@Override
+		public long getItemId(int id) {
+			return 0;
+		}
+
+		@Override
+		public View getView(int position, View convertView, ViewGroup parent) {
+			if (position < 0 || position >= getCount()) {
+				return null;
+			}
+
+			synchronized (this) {
+				if (mStringGroup == null) {
+					mStringGroup = mContext.getResources().getStringArray(
+							R.array.serious_level_labels);
+				}
+			}
+
+			ItemViewGroup viewGroup = null;
+
+			if (null == convertView) {
+				LayoutInflater factory = LayoutInflater.from(mContext);
+				viewGroup = new ItemViewGroup();
+
+				convertView = factory.inflate(R.layout.edit_serious_level_item,
+						null);
+
+				viewGroup.mTextView = (TextView) convertView
+						.findViewById(R.id.text);
+
+				convertView.setTag(viewGroup);
+			} else {
+				viewGroup = (ItemViewGroup) convertView.getTag();
+			}
+
+			showItem(position, viewGroup);
+
+			return convertView;
+		}
+
+		private void showItem(final int position, ItemViewGroup viewGroup) {
+			viewGroup.mTextView.setText(mStringGroup[position]);
+			viewGroup.mTextView
+					.setBackgroundResource(mResIDGroupOfBackground[position]);
+		}
+
+		// ====================================================================
+		private final int mResIDGroupOfBackground[] = {
+				R.drawable.list_selector_holo_green,
+				R.drawable.list_selector_holo_blue,
+				R.drawable.list_selector_holo_orange,
+				R.drawable.list_selector_holo_purple,
+				R.drawable.list_selector_holo_red };
+
+		private String mStringGroup[] = null;
+
+		// ====================================================================
+		private class ItemViewGroup {
+			/* Item */
+			private TextView mTextView;
+		}
+
+	}
+
 }
