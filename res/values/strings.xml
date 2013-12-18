@@ -19,6 +19,10 @@
 
     <!-- Shared Labels. These labels are shared among the activities. -->
     <skip/>
+    <!-- This is the label for the title or name of a serious level -->
+    <string name="serious_label">Serious</string>
+    <!-- This is the label for the title or name of a body part -->
+    <string name="part_label">Part</string>
     <!-- This is the label for the title or name of an event -->
     <string name="what_label">What</string>
     <!-- This is the label for the location of an event -->
@@ -778,5 +782,12 @@
     <!-- Reminders label [CHAR LIMIT=15]-->
     <string name="daily_status_info_reminders_label">Reminders</string>
 
-
+    <!-- Label for the 'Serious' of a daily status, which can be [0 - 4] [CHAR LIMIT=15] -->
+    <string name="serious_label">Serious level</string>
+    
+    <!-- Body statuses label [CHAR LIMIT=15]-->
+    <string name="body_statuses_label">Body Statuses</string>
+    
+    <!-- Label for adding the list of body status [CHAR LIMIT=20] -->
+    <string name="body_status_add_label">Add body status</string>
 </resources>
