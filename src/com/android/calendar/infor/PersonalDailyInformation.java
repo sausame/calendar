@@ -119,6 +119,102 @@ public class PersonalDailyInformation implements Serializable {
 		return this;
 	}
 
+    /**
+     * A single body status entry.
+     *
+     * Instances of the class are immutable.
+     */
+    public static class BodyStatusEntry implements Comparable<BodyStatusEntry>, Serializable {
+        private final int mType;
+        private final String mValue;
+
+        /**
+         * Returns a new BodyStatusEntry, with the specified type and value.
+         *
+         * @param type Number of type before the start of the event that the alert will fire.
+         * @param value Type of alert ({@link BodyStatuss#METHOD_ALERT}, etc).
+         */
+        public static BodyStatusEntry valueOf(int type, String value) {
+            // TODO: cache common instances
+            return new BodyStatusEntry(type, value);
+        }
+
+        /**
+         * Returns a BodyStatusEntry, with the specified number of type and a default alert value.
+         *
+         * @param type Number of type before the start of the event that the alert will fire.
+         */
+        public static BodyStatusEntry valueOf(int type) {
+            return valueOf(type, "");
+        }
+
+        /**
+         * Constructs a new BodyStatusEntry.
+         *
+         * @param type Number of type before the start of the event that the alert will fire.
+         * @param value Type of alert ({@link BodyStatuss#METHOD_ALERT}, etc).
+         */
+        private BodyStatusEntry(int type, String value) {
+            // TODO: error-check args
+            mType = type;
+            mValue = value;
+        }
+
+        @Override
+        public int hashCode() {
+            return mType * 10;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof BodyStatusEntry)) {
+                return false;
+            }
+
+            BodyStatusEntry re = (BodyStatusEntry) obj;
+
+            if (re.mType != mType) {
+                return false;
+            }
+
+            return re.mValue.equals(mValue);
+        }
+
+        @Override
+        public String toString() {
+            return "BodyStatusEntry type=" + mType + " value=" + mValue;
+        }
+
+        /**
+         * Comparison function for a sort ordered primarily descending by type,
+         * secondarily ascending by value type.
+         */
+        @Override
+        public int compareTo(BodyStatusEntry re) {
+            if (re.mType != mType) {
+                return re.mType - mType;
+            }
+            if (re.mValue.equals(mValue)) {
+                return mValue.compareTo(re.mValue);
+            }
+            return 0;
+        }
+
+        /** Returns the type. */
+        public int getType() {
+            return mType;
+        }
+
+        /** Returns the alert value. */
+        public String getValue() {
+            return mValue;
+        }
+    }
+
+
 	public static class DetailInformation implements Serializable {
 		public String description;
 		public String attachmentPath;

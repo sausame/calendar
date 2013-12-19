@@ -28,7 +28,6 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.provider.CalendarContract.Calendars;
-import android.provider.CalendarContract.Reminders;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.text.format.DateUtils;
@@ -47,15 +46,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.android.calendar.CalendarEventModel;
-import com.android.calendar.CalendarEventModel.ReminderEntry;
 import com.android.calendar.EmailAddressAdapter;
 import com.android.calendar.GeneralPreferences;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper;
-import com.android.calendar.event.EventViewUtils;
 import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
+import com.android.calendar.infor.PersonalDailyInformation.BodyStatusEntry;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
 import com.android.datetimepicker.date.DatePickerDialog.OnDateSetListener;
@@ -103,22 +101,15 @@ public class EditDailyStatusView implements View.OnClickListener,
 	private DatePickerDialog mDatePickerDialog;
 
 	/**
-	 * Contents of the "minutes" spinner. This has default values from the XML
+	 * Contents of the "body status" spinner. This has default values from the XML
 	 * file, augmented with any additional values that were already associated
 	 * with the event.
 	 */
-	private ArrayList<Integer> mReminderMinuteValues;
-	private ArrayList<String> mReminderMinuteLabels;
+	private ArrayList<Integer> mBodyStatusTypeValues;
+	private ArrayList<String> mBodyStatusTypeLabels;
+	private ArrayList<String> mBodyStatusTypeDefaultValues;
 
-	/**
-	 * Contents of the "methods" spinner. The "values" list specifies the method
-	 * constant (e.g. {@link Reminders#METHOD_ALERT}) associated with the
-	 * labels. Any methods that aren't allowed by the Calendar will be removed.
-	 */
-	private ArrayList<Integer> mReminderMethodValues;
-	private ArrayList<String> mReminderMethodLabels;
-
-	private int mDefaultReminderMinutes;
+	private int mDefaultBodyStatusMinutes;
 
 	private Time mWhenTime;
 
@@ -126,9 +117,9 @@ public class EditDailyStatusView implements View.OnClickListener,
 
 	private EventRecurrence mEventRecurrence = new EventRecurrence();
 
-	private ArrayList<LinearLayout> mReminderItems = new ArrayList<LinearLayout>(
+	private ArrayList<LinearLayout> mBodyStatusItems = new ArrayList<LinearLayout>(
 			0);
-	private ArrayList<ReminderEntry> mUnsupportedReminders = new ArrayList<ReminderEntry>();
+	private ArrayList<BodyStatusEntry> mUnsupportedBodyStatuss = new ArrayList<BodyStatusEntry>();
 	private String mRrule;
 
 	private class DateListener implements OnDateSetListener {
@@ -231,10 +222,10 @@ public class EditDailyStatusView implements View.OnClickListener,
 		if (mModel == null || (mCalendarsCursor == null && mModel.mUri == null)) {
 			return false;
 		}
-		mModel.mReminders = EventViewUtils.reminderItemsToReminders(
-				mReminderItems, mReminderMinuteValues, mReminderMethodValues);
-		mModel.mReminders.addAll(mUnsupportedReminders);
-		mModel.normalizeReminders();
+/*		mModel.mBodyStatuss = InforViewUtils.reminderItemsToBodyStatuss(
+				mBodyStatusItems, mBodyStatusTypeValues, mBodyStatusTypeDefaultValues);
+		mModel.mBodyStatuss.addAll(mUnsupportedBodyStatuss);
+		mModel.normalizeBodyStatuss();*/
 		return true;
 	}
 
@@ -247,10 +238,10 @@ public class EditDailyStatusView implements View.OnClickListener,
 		LinearLayout reminderItem = (LinearLayout) view.getParent();
 		LinearLayout parent = (LinearLayout) reminderItem.getParent();
 		parent.removeView(reminderItem);
-		mReminderItems.remove(reminderItem);
-		updateRemindersVisibility(mReminderItems.size());
-		EventViewUtils.updateAddReminderButton(mView, mReminderItems,
-				mModel.mCalendarMaxReminders);
+		mBodyStatusItems.remove(reminderItem);
+		updateBodyStatussVisibility(mBodyStatusItems.size());
+/*		InforViewUtils.updateAddBodyStatusButton(mView, mBodyStatusItems,
+				mModel.mCalendarMaxBodyStatuss);*/
 	}
 
 	// This is called if the user cancels the "No calendars" dialog.
@@ -288,11 +279,11 @@ public class EditDailyStatusView implements View.OnClickListener,
 		if (mModel == null) {
 			return false;
 		}
-		mModel.mReminders = EventViewUtils.reminderItemsToReminders(
-				mReminderItems, mReminderMinuteValues, mReminderMethodValues);
-		mModel.mReminders.addAll(mUnsupportedReminders);
-		mModel.normalizeReminders();
-		mModel.mHasAlarm = mReminderItems.size() > 0;
+/*		mModel.mBodyStatuss = InforViewUtils.reminderItemsToBodyStatuss(
+				mBodyStatusItems, mBodyStatusTypeValues, mBodyStatusTypeDefaultValues);
+		mModel.mBodyStatuss.addAll(mUnsupportedBodyStatuss);
+		mModel.normalizeBodyStatuss();*/
+		mModel.mHasAlarm = mBodyStatusItems.size() > 0;
 		mModel.mTitle = mTitleTextView.getText().toString();
 		mModel.mDescription = mDescriptionTextView.getText().toString();
 		if (TextUtils.isEmpty(mModel.mLocation)) {
@@ -408,74 +399,17 @@ public class EditDailyStatusView implements View.OnClickListener,
 	 * items as needed for the current set of reminders and calendar properties,
 	 * and then creates UI elements.
 	 */
-	private void prepareReminders() {
-		CalendarEventModel model = mModel;
+	private void prepareBodyStatuses() {
 		Resources r = mActivity.getResources();
 
-		// Load the labels and corresponding numeric values for the minutes and
-		// methods lists
-		// from the assets. If we're switching calendars, we need to clear and
-		// re-populate the
-		// lists (which may have elements added and removed based on calendar
-		// properties). This
-		// is mostly relevant for "methods", since we shouldn't have any
-		// "minutes" values in a
-		// new event that aren't in the default set.
-		mReminderMinuteValues = loadIntegerArray(r,
-				R.array.reminder_minutes_values);
-		mReminderMinuteLabels = loadStringArray(r,
-				R.array.reminder_minutes_labels);
-		mReminderMethodValues = loadIntegerArray(r,
-				R.array.reminder_methods_values);
-		mReminderMethodLabels = loadStringArray(r,
-				R.array.reminder_methods_labels);
-
-		// Remove any reminder methods that aren't allowed for this calendar. If
-		// this is
-		// a new event, mCalendarAllowedReminders may not be set the first time
-		// we're called.
-		if (mModel.mCalendarAllowedReminders != null) {
-			EventViewUtils.reduceMethodList(mReminderMethodValues,
-					mReminderMethodLabels, mModel.mCalendarAllowedReminders);
-		}
-
-		int numReminders = 0;
-		if (model.mHasAlarm) {
-			ArrayList<ReminderEntry> reminders = model.mReminders;
-			numReminders = reminders.size();
-			// Insert any minute values that aren't represented in the minutes
-			// list.
-			for (ReminderEntry re : reminders) {
-				if (mReminderMethodValues.contains(re.getMethod())) {
-					EventViewUtils.addMinutesToList(mActivity,
-							mReminderMinuteValues, mReminderMinuteLabels,
-							re.getMinutes());
-				}
-			}
-
-			// Create a UI element for each reminder. We display all of the
-			// reminders we get
-			// from the provider, even if the count exceeds the calendar
-			// maximum. (Also, for
-			// a new event, we won't have a maxReminders value available.)
-			mUnsupportedReminders.clear();
-			for (ReminderEntry re : reminders) {
-				if (mReminderMethodValues.contains(re.getMethod())
-						|| re.getMethod() == Reminders.METHOD_DEFAULT) {
-					EventViewUtils.addReminder(mActivity, mScrollView, this,
-							mReminderItems, mReminderMinuteValues,
-							mReminderMinuteLabels, mReminderMethodValues,
-							mReminderMethodLabels, re, Integer.MAX_VALUE, null);
-				} else {
-					// TODO figure out a way to display unsupported reminders
-					mUnsupportedReminders.add(re);
-				}
-			}
-		}
-
-		updateRemindersVisibility(numReminders);
-		EventViewUtils.updateAddReminderButton(mView, mReminderItems,
-				mModel.mCalendarMaxReminders);
+		mBodyStatusTypeValues = loadIntegerArray(r,
+				R.array.body_status_values);
+		mBodyStatusTypeLabels = loadStringArray(r,
+				R.array.body_status_labels);
+		mBodyStatusTypeDefaultValues = loadStringArray(r,
+				R.array.body_status_default_values);
+		
+		// XXX Add user-defined items.
 	}
 
 	/**
@@ -523,18 +457,18 @@ public class EditDailyStatusView implements View.OnClickListener,
 
 		SharedPreferences prefs = GeneralPreferences
 				.getSharedPreferences(mActivity);
-		String defaultReminderString = prefs.getString(
+		String defaultBodyStatusString = prefs.getString(
 				GeneralPreferences.KEY_DEFAULT_REMINDER,
 				GeneralPreferences.NO_REMINDER_STRING);
-		mDefaultReminderMinutes = Integer.parseInt(defaultReminderString);
+		mDefaultBodyStatusMinutes = Integer.parseInt(defaultBodyStatusString);
 
-//XXX		prepareReminders();
+		prepareBodyStatuses();
 
 		View bodyStatusAddButton = mView.findViewById(R.id.body_status_add);
 		View.OnClickListener addBodyStatusOnClickListener = new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				addReminder();
+				addBodyStatus();
 			}
 		};
 		bodyStatusAddButton.setOnClickListener(addBodyStatusOnClickListener);
@@ -585,12 +519,6 @@ public class EditDailyStatusView implements View.OnClickListener,
 				v.setBackgroundDrawable(null);
 			}
 
-			if (EditEventHelper.canAddReminders(mModel)) {
-				mBodyStatusesGroup.setVisibility(View.VISIBLE);
-			} else {
-				mBodyStatusesGroup.setVisibility(View.GONE);
-			}
-
 			if (TextUtils.isEmpty(mDescriptionTextView.getText())) {
 				mDescriptionGroup.setVisibility(View.GONE);
 			}
@@ -620,8 +548,8 @@ public class EditDailyStatusView implements View.OnClickListener,
 		updateView();
 	}
 
-	private void updateRemindersVisibility(int numReminders) {
-		if (numReminders == 0) {
+	private void updateBodyStatussVisibility(int numBodyStatuss) {
+		if (numBodyStatuss == 0) {
 			mBodyStatusesContainer.setVisibility(View.GONE);
 		} else {
 			mBodyStatusesContainer.setVisibility(View.VISIBLE);
@@ -632,27 +560,24 @@ public class EditDailyStatusView implements View.OnClickListener,
 	 * Add a new reminder when the user hits the "add reminder" button. We use
 	 * the default reminder time and method.
 	 */
-	private void addReminder() {
+	private void addBodyStatus() {
 		// TODO: when adding a new reminder, make it different from the
 		// last one in the list (if any).
-		if (mDefaultReminderMinutes == GeneralPreferences.NO_REMINDER) {
-			EventViewUtils.addReminder(mActivity, mScrollView, this,
-					mReminderItems, mReminderMinuteValues,
-					mReminderMinuteLabels, mReminderMethodValues,
-					mReminderMethodLabels, ReminderEntry
-							.valueOf(GeneralPreferences.REMINDER_DEFAULT_TIME),
-					mModel.mCalendarMaxReminders, null);
+		if (mDefaultBodyStatusMinutes == GeneralPreferences.NO_REMINDER) {
+			InforViewUtils.addBodyStatus(mActivity, mScrollView, this,
+					mBodyStatusItems, mBodyStatusTypeValues,
+					mBodyStatusTypeLabels, mBodyStatusTypeDefaultValues,
+					BodyStatusEntry.valueOf(1),
+					Integer.MAX_VALUE, null);
 		} else {
-			EventViewUtils.addReminder(mActivity, mScrollView, this,
-					mReminderItems, mReminderMinuteValues,
-					mReminderMinuteLabels, mReminderMethodValues,
-					mReminderMethodLabels,
-					ReminderEntry.valueOf(mDefaultReminderMinutes),
-					mModel.mCalendarMaxReminders, null);
+			InforViewUtils.addBodyStatus(mActivity, mScrollView, this,
+					mBodyStatusItems, mBodyStatusTypeValues,
+					mBodyStatusTypeLabels, mBodyStatusTypeDefaultValues,					
+					BodyStatusEntry.valueOf(1),
+					Integer.MAX_VALUE, null);
 		}
-		updateRemindersVisibility(mReminderItems.size());
-		EventViewUtils.updateAddReminderButton(mView, mReminderItems,
-				mModel.mCalendarMaxReminders);
+		updateBodyStatussVisibility(mBodyStatusItems.size());
+		InforViewUtils.updateAddBodyStatusButton(mView, mBodyStatusItems, Integer.MAX_VALUE);
 	}
 
 	private void setDate(TextView view, long millis) {
@@ -713,12 +638,12 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mModel.setEventColor(mModel.getCalendarColor());
 
 		// Update the max/allowed reminders with the new calendar properties.
-		int maxRemindersColumn = c
+		int maxBodyStatussColumn = c
 				.getColumnIndexOrThrow(Calendars.MAX_REMINDERS);
-		mModel.mCalendarMaxReminders = c.getInt(maxRemindersColumn);
-		int allowedRemindersColumn = c
+
+		int allowedBodyStatussColumn = c
 				.getColumnIndexOrThrow(Calendars.ALLOWED_REMINDERS);
-		mModel.mCalendarAllowedReminders = c.getString(allowedRemindersColumn);
+
 		int allowedAttendeeTypesColumn = c
 				.getColumnIndexOrThrow(Calendars.ALLOWED_ATTENDEE_TYPES);
 		mModel.mCalendarAllowedAttendeeTypes = c
@@ -728,21 +653,12 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mModel.mCalendarAllowedAvailability = c
 				.getString(allowedAvailabilityColumn);
 
-		// Discard the current reminders and replace them with the model's
-		// default reminder set.
-		// We could attempt to save & restore the reminders that have been
-		// added, but that's
-		// probably more trouble than it's worth.
-		mModel.mReminders.clear();
-		mModel.mReminders.addAll(mModel.mDefaultReminders);
-		mModel.mHasAlarm = mModel.mReminders.size() != 0;
-
 		// Update the UI elements.
-		mReminderItems.clear();
+		mBodyStatusItems.clear();
 		LinearLayout reminderLayout = (LinearLayout) mScrollView
 				.findViewById(R.id.reminder_items_container);
 		reminderLayout.removeAllViews();
-		prepareReminders();
+		prepareBodyStatuses();
 	}
 
 	@Override

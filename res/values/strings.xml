@@ -790,4 +790,12 @@
     
     <!-- Label for adding the list of body status [CHAR LIMIT=20] -->
     <string name="body_status_add_label">Add body status</string>
+
+    <!-- Set the type of the body status (blood presure/other)[CHAR LIMIT = NONE]-->
+    <string name="accessibility_body_status">Body status</string>
+
+    <!-- Remove a name of a body status from a daily infor [CHAR LIMIT = NONE]-->
+    <string name="accessibility_remove_body_status">Remove body status</string>
+
+
 </resources>
