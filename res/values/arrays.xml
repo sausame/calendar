@@ -307,7 +307,7 @@
         <item >on every last Saturday</item>
     </string-array>
 
-    <!-- Repeat a monthly event on the same nth day of every Saturday. [CHAR LIMIT=30] -->
+    <!-- Serious level labels. [CHAR LIMIT=30] -->
     <string-array name="serious_level_labels">
         <item >Lighter</item>
         <item >Light</item>
@@ -315,5 +315,15 @@
         <item >More Serious</item>
         <item >Much Serious</item>
     </string-array>
+
+    <!-- Body parts. [CHAR LIMIT=30] -->
+    <string-array name="body_part_labels">
+        <item >Head</item>
+        <item >Arm</item>
+        <item >Leg</item>
+        <item >Foot</item>
+        <item >Other</item>
+    </string-array>
+
 
 </resources>

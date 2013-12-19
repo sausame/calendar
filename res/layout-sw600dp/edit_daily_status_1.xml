@@ -65,7 +65,7 @@
         <Spinner
             android:id="@+id/part"
             style="@style/TextAppearance.EditEvent_Spinner"
-            android:entries="@array/availability"
+            android:entries="@array/body_part_labels"
             android:prompt="@string/part_label" />
     </TableRow>
 
