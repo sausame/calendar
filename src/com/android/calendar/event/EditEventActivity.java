@@ -36,7 +36,7 @@ import com.android.calendar.CalendarEventModel.ReminderEntry;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
-import com.android.calendar.infor.EditDailyStatusFragment;
+import com.android.calendar.infor.EditTherapyFragment;
 
 import java.util.ArrayList;
 
@@ -53,7 +53,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
 
     private static boolean mIsMultipane;
 
-    private EditDailyStatusFragment mEditFragment;
+    private EditTherapyFragment mEditFragment;
 
     private ArrayList<ReminderEntry> mReminders;
 
@@ -74,7 +74,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
         mEventColor = getIntent().getIntExtra(EXTRA_EVENT_COLOR, -1);
 
 
-        mEditFragment = (EditDailyStatusFragment) getFragmentManager().findFragmentById(R.id.main_frame);
+        mEditFragment = (EditTherapyFragment) getFragmentManager().findFragmentById(R.id.main_frame);
 
         mIsMultipane = Utils.getConfigBool(this, R.bool.multiple_pane_config);
 
@@ -98,7 +98,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
                 intent = getIntent();
             }
 
-            mEditFragment = new EditDailyStatusFragment(mEventInfo, mReminders, mEventColorInitialized,
+            mEditFragment = new EditTherapyFragment(mEventInfo, mReminders, mEventColorInitialized,
                     mEventColor, false, intent);
 
             mEditFragment.mShowModifyDialogOnLaunch = getIntent().getBooleanExtra(

@@ -343,5 +343,11 @@
         <item ></item>
     </string-array>
 
+    <!-- Body status lables. [CHAR LIMIT=30] -->
+    <string-array name="times_labels">
+        <item >1 per day</item>
+        <item >2 per day</item>
+        <item >Other</item>
+    </string-array>
 
 </resources>

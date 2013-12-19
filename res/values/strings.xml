@@ -19,8 +19,6 @@
 
     <!-- Shared Labels. These labels are shared among the activities. -->
     <skip/>
-    <!-- This is the label for the title or name of a serious level -->
-    <string name="serious_label">Serious</string>
     <!-- This is the label for the title or name of a body part -->
     <string name="part_label">Part</string>
     <!-- This is the label for the title or name of an event -->
@@ -797,5 +795,19 @@
     <!-- Remove a name of a body status from a daily infor [CHAR LIMIT = NONE]-->
     <string name="accessibility_remove_body_status">Remove body status</string>
 
+    <!-- Label for the 'therapy type' of a therapy (drug/physical) [CHAR LIMIT=15] -->
+    <string name="therapy_type_label">Therapy type</string>
+ 
+    <!-- This is the label for the title or name of therapy times every day -->
+    <string name="times_label">Times</string>
+
+    <!-- This is the label for the title or name of therapy times every day -->
+    <string name="times_label">Times</string>
+
+    <!-- Label for the 'Usage' of a therapy [CHAR LIMIT=15] -->
+    <string name="usage_label">Usage</string>
+ 
+    <!-- Default value of Therapy Usage field (as a hint to the user) [CHAR LIMIT=15] -->
+    <string name="hint_usage">"Usage"</string>
 
 </resources>
