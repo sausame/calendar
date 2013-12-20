@@ -53,7 +53,6 @@ import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper;
 import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
-import com.android.calendar.infor.PersonalDailyInformation.BodyStatusEntry;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
 import com.android.datetimepicker.date.DatePickerDialog.OnDateSetListener;
@@ -73,7 +72,7 @@ public class EditTherapyView implements View.OnClickListener,
 	ArrayList<View> mEditViewList = new ArrayList<View>();
 	ArrayList<View> mViewOnlyList = new ArrayList<View>();
 
-	private Spinner mLevelSpinner;
+	private Spinner mTherapyTypeSpinner;
 	private LevelAdapter mLevelAdapter;
 
 	TextView mLoadingMessage;
@@ -81,9 +80,9 @@ public class EditTherapyView implements View.OnClickListener,
 	Button mWhenButton;
 	TextView mTitleTextView;
 	TextView mDescriptionTextView;
-	LinearLayout mBodyStatusesContainer;
+	LinearLayout mReminderesContainer;
 	View mDescriptionGroup;
-	View mBodyStatusesGroup;
+	View mReminderesGroup;
 
 	private int[] mOriginalPadding = new int[4];
 
@@ -105,9 +104,9 @@ public class EditTherapyView implements View.OnClickListener,
 	 * file, augmented with any additional values that were already associated
 	 * with the event.
 	 */
-	private ArrayList<Integer> mBodyStatusTypeValues;
-	private ArrayList<String> mBodyStatusTypeLabels;
-	private ArrayList<String> mBodyStatusTypeDefaultValues;
+	private ArrayList<Integer> mReminderTypeValues;
+	private ArrayList<String> mReminderTypeLabels;
+	private ArrayList<String> mReminderTypeDefaultValues;
 
 	private int mDefaultBodyStatusMinutes;
 
@@ -117,9 +116,9 @@ public class EditTherapyView implements View.OnClickListener,
 
 	private EventRecurrence mEventRecurrence = new EventRecurrence();
 
-	private ArrayList<LinearLayout> mBodyStatusItems = new ArrayList<LinearLayout>(
+	private ArrayList<LinearLayout> mReminderItems = new ArrayList<LinearLayout>(
 			0);
-	private ArrayList<BodyStatusEntry> mUnsupportedBodyStatuss = new ArrayList<BodyStatusEntry>();
+
 	private String mRrule;
 
 	private class DateListener implements OnDateSetListener {
@@ -222,9 +221,9 @@ public class EditTherapyView implements View.OnClickListener,
 		if (mModel == null || (mCalendarsCursor == null && mModel.mUri == null)) {
 			return false;
 		}
-/*		mModel.mBodyStatuss = InforViewUtils.reminderItemsToBodyStatuss(
-				mBodyStatusItems, mBodyStatusTypeValues, mBodyStatusTypeDefaultValues);
-		mModel.mBodyStatuss.addAll(mUnsupportedBodyStatuss);
+/*		mModel.mReminders = InforViewUtils.reminderItemsToBodyStatuss(
+				mReminderItems, mReminderTypeValues, mReminderTypeDefaultValues);
+		mModel.mReminders.addAll(mUnsupportedBodyStatuss);
 		mModel.normalizeBodyStatuss();*/
 		return true;
 	}
@@ -238,9 +237,9 @@ public class EditTherapyView implements View.OnClickListener,
 		LinearLayout reminderItem = (LinearLayout) view.getParent();
 		LinearLayout parent = (LinearLayout) reminderItem.getParent();
 		parent.removeView(reminderItem);
-		mBodyStatusItems.remove(reminderItem);
-		updateBodyStatussVisibility(mBodyStatusItems.size());
-/*		InforViewUtils.updateAddBodyStatusButton(mView, mBodyStatusItems,
+		mReminderItems.remove(reminderItem);
+		updateBodyStatussVisibility(mReminderItems.size());
+/*		InforViewUtils.updateAddBodyStatusButton(mView, mReminderItems,
 				mModel.mCalendarMaxBodyStatuss);*/
 	}
 
@@ -279,11 +278,11 @@ public class EditTherapyView implements View.OnClickListener,
 		if (mModel == null) {
 			return false;
 		}
-/*		mModel.mBodyStatuss = InforViewUtils.reminderItemsToBodyStatuss(
-				mBodyStatusItems, mBodyStatusTypeValues, mBodyStatusTypeDefaultValues);
-		mModel.mBodyStatuss.addAll(mUnsupportedBodyStatuss);
+/*		mModel.mReminders = InforViewUtils.reminderItemsToBodyStatuss(
+				mReminderItems, mReminderTypeValues, mReminderTypeDefaultValues);
+		mModel.mReminders.addAll(mUnsupportedBodyStatuss);
 		mModel.normalizeBodyStatuss();*/
-		mModel.mHasAlarm = mBodyStatusItems.size() > 0;
+		mModel.mHasAlarm = mReminderItems.size() > 0;
 		mModel.mTitle = mTitleTextView.getText().toString();
 		mModel.mDescription = mDescriptionTextView.getText().toString();
 		if (TextUtils.isEmpty(mModel.mLocation)) {
@@ -317,17 +316,17 @@ public class EditTherapyView implements View.OnClickListener,
 		mTitleTextView = (TextView) view.findViewById(R.id.title);
 		mDescriptionTextView = (TextView) view.findViewById(R.id.description);
 		mWhenButton = (Button) view.findViewById(R.id.when_button);
-		mBodyStatusesGroup = view.findViewById(R.id.body_statuses_row);
+		mReminderesGroup = view.findViewById(R.id.reminders_row);
 		mDescriptionGroup = view.findViewById(R.id.description_row);
 		mTitleTextView.setTag(mTitleTextView.getBackground());
 		mDescriptionTextView.setTag(mDescriptionTextView.getBackground());
 
-		mLevelSpinner = (Spinner) view.findViewById(R.id.serious);
+		mTherapyTypeSpinner = (Spinner) view.findViewById(R.id.therapy_type);
 
 		mLevelAdapter = new LevelAdapter(activity);
-		mLevelSpinner.setAdapter(mLevelAdapter);
-		mLevelSpinner.setSelection(3);
-		mLevelSpinner
+		mTherapyTypeSpinner.setAdapter(mLevelAdapter);
+		mTherapyTypeSpinner.setSelection(0);
+		mTherapyTypeSpinner
 				.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 					public void onItemSelected(AdapterView<?> parent,
 							View view, int position, long id) {
@@ -348,10 +347,10 @@ public class EditTherapyView implements View.OnClickListener,
 
 //		mViewOnlyList.add(view.findViewById(R.id.when_row));
 
-		mEditOnlyList.add(mBodyStatusesGroup);
+		mEditOnlyList.add(mReminderesGroup);
 
-		mBodyStatusesContainer = (LinearLayout) view
-				.findViewById(R.id.body_status_items_container);
+		mReminderesContainer = (LinearLayout) view
+				.findViewById(R.id.reminder_items_container);
 
 		mIsMultipane = activity.getResources().getBoolean(R.bool.tablet_config);
 		mWhenTime = new Time();
@@ -399,14 +398,14 @@ public class EditTherapyView implements View.OnClickListener,
 	 * items as needed for the current set of reminders and calendar properties,
 	 * and then creates UI elements.
 	 */
-	private void prepareBodyStatuses() {
+	private void prepareReminders() {
 		Resources r = mActivity.getResources();
 
-		mBodyStatusTypeValues = loadIntegerArray(r,
+		mReminderTypeValues = loadIntegerArray(r,
 				R.array.body_status_values);
-		mBodyStatusTypeLabels = loadStringArray(r,
+		mReminderTypeLabels = loadStringArray(r,
 				R.array.body_status_labels);
-		mBodyStatusTypeDefaultValues = loadStringArray(r,
+		mReminderTypeDefaultValues = loadStringArray(r,
 				R.array.body_status_default_values);
 		
 		// XXX Add user-defined items.
@@ -462,16 +461,16 @@ public class EditTherapyView implements View.OnClickListener,
 				GeneralPreferences.NO_REMINDER_STRING);
 		mDefaultBodyStatusMinutes = Integer.parseInt(defaultBodyStatusString);
 
-		prepareBodyStatuses();
+		prepareReminders();
 
-		View bodyStatusAddButton = mView.findViewById(R.id.body_status_add);
-		View.OnClickListener addBodyStatusOnClickListener = new View.OnClickListener() {
+		View button = mView.findViewById(R.id.reminder_add);
+		View.OnClickListener listener = new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				addBodyStatus();
+				addReminder();
 			}
 		};
-		bodyStatusAddButton.setOnClickListener(addBodyStatusOnClickListener);
+		button.setOnClickListener(listener);
 
 		if (model.mTitle != null) {
 			mTitleTextView.setTextKeepState(model.mTitle);
@@ -538,7 +537,7 @@ public class EditTherapyView implements View.OnClickListener,
 				}
 			}
 
-			mBodyStatusesGroup.setVisibility(View.VISIBLE);
+			mReminderesGroup.setVisibility(View.VISIBLE);
 			mDescriptionGroup.setVisibility(View.VISIBLE);
 		}
 	}
@@ -548,11 +547,11 @@ public class EditTherapyView implements View.OnClickListener,
 		updateView();
 	}
 
-	private void updateBodyStatussVisibility(int numBodyStatuss) {
-		if (numBodyStatuss == 0) {
-			mBodyStatusesContainer.setVisibility(View.GONE);
+	private void updateBodyStatussVisibility(int numReminders) {
+		if (numReminders == 0) {
+			mReminderesContainer.setVisibility(View.GONE);
 		} else {
-			mBodyStatusesContainer.setVisibility(View.VISIBLE);
+			mReminderesContainer.setVisibility(View.VISIBLE);
 		}
 	}
 
@@ -560,24 +559,24 @@ public class EditTherapyView implements View.OnClickListener,
 	 * Add a new reminder when the user hits the "add reminder" button. We use
 	 * the default reminder time and method.
 	 */
-	private void addBodyStatus() {
+	private void addReminder() {
 		// TODO: when adding a new reminder, make it different from the
 		// last one in the list (if any).
 		if (mDefaultBodyStatusMinutes == GeneralPreferences.NO_REMINDER) {
-			InforViewUtils.addBodyStatus(mActivity, mScrollView, this,
-					mBodyStatusItems, mBodyStatusTypeValues,
-					mBodyStatusTypeLabels, mBodyStatusTypeDefaultValues,
-					BodyStatusEntry.valueOf(1),
+			InforViewUtils.addTherapyReminder(mActivity, mScrollView, this,
+					mReminderItems, mReminderTypeValues,
+					mReminderTypeLabels, 
+					1,
 					Integer.MAX_VALUE, null);
 		} else {
-			InforViewUtils.addBodyStatus(mActivity, mScrollView, this,
-					mBodyStatusItems, mBodyStatusTypeValues,
-					mBodyStatusTypeLabels, mBodyStatusTypeDefaultValues,					
-					BodyStatusEntry.valueOf(1),
+			InforViewUtils.addTherapyReminder(mActivity, mScrollView, this,
+					mReminderItems, mReminderTypeValues,
+					mReminderTypeLabels, 					
+					1,
 					Integer.MAX_VALUE, null);
 		}
-		updateBodyStatussVisibility(mBodyStatusItems.size());
-		InforViewUtils.updateAddBodyStatusButton(mView, mBodyStatusItems, Integer.MAX_VALUE);
+		updateBodyStatussVisibility(mReminderItems.size());
+		InforViewUtils.updateAddTherapyReminderButton(mView, mReminderItems, Integer.MAX_VALUE);
 	}
 
 	private void setDate(TextView view, long millis) {
@@ -654,11 +653,11 @@ public class EditTherapyView implements View.OnClickListener,
 				.getString(allowedAvailabilityColumn);
 
 		// Update the UI elements.
-		mBodyStatusItems.clear();
+		mReminderItems.clear();
 		LinearLayout reminderLayout = (LinearLayout) mScrollView
 				.findViewById(R.id.reminder_items_container);
 		reminderLayout.removeAllViews();
-		prepareBodyStatuses();
+		prepareReminders();
 	}
 
 	@Override
@@ -676,7 +675,7 @@ public class EditTherapyView implements View.OnClickListener,
 		// ====================================================================
 		@Override
 		public int getCount() {
-			return mResIDGroupOfBackground.length;
+			return mResIDGroupOfIcon.length;
 		}
 
 		@Override
@@ -698,7 +697,7 @@ public class EditTherapyView implements View.OnClickListener,
 			synchronized (this) {
 				if (mStringGroup == null) {
 					mStringGroup = mContext.getResources().getStringArray(
-							R.array.serious_level_labels);
+							R.array.therapy_type_labels);
 				}
 			}
 
@@ -708,9 +707,11 @@ public class EditTherapyView implements View.OnClickListener,
 				LayoutInflater factory = LayoutInflater.from(mContext);
 				viewGroup = new ItemViewGroup();
 
-				convertView = factory.inflate(R.layout.edit_serious_level_item,
+				convertView = factory.inflate(R.layout.edit_therapy_type_item,
 						null);
 
+				viewGroup.mImageView = (ImageView) convertView
+						.findViewById(R.id.image);
 				viewGroup.mTextView = (TextView) convertView
 						.findViewById(R.id.text);
 
@@ -726,23 +727,21 @@ public class EditTherapyView implements View.OnClickListener,
 
 		private void showItem(final int position, ItemViewGroup viewGroup) {
 			viewGroup.mTextView.setText(mStringGroup[position]);
-			viewGroup.mTextView
-					.setBackgroundResource(mResIDGroupOfBackground[position]);
+			viewGroup.mImageView.setImageResource(mResIDGroupOfIcon[position]);
 		}
 
 		// ====================================================================
-		private final int mResIDGroupOfBackground[] = {
-				R.drawable.list_selector_holo_green,
-				R.drawable.list_selector_holo_blue,
-				R.drawable.list_selector_holo_orange,
-				R.drawable.list_selector_holo_purple,
-				R.drawable.list_selector_holo_red };
+		private final int mResIDGroupOfIcon[] = {
+				R.drawable.ic_drug,
+				R.drawable.ic_injection,
+				0 };
 
 		private String mStringGroup[] = null;
 
 		// ====================================================================
 		private class ItemViewGroup {
 			/* Item */
+			private ImageView mImageView;
 			private TextView mTextView;
 		}
 

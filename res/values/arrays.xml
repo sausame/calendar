@@ -350,4 +350,11 @@
         <item >Other</item>
     </string-array>
 
+    <!-- Therapy type labels. [CHAR LIMIT=30] -->
+    <string-array name="therapy_type_labels">
+        <item >Drug</item>
+        <item >Injection</item>
+        <item >Other</item>
+    </string-array>
+
 </resources>

@@ -810,4 +810,13 @@
     <!-- Default value of Therapy Usage field (as a hint to the user) [CHAR LIMIT=15] -->
     <string name="hint_usage">"Usage"</string>
 
+    <!-- Label for the 'Each Usage' of a therapy [CHAR LIMIT=15] -->
+    <string name="each_usage_label">Each </string>
+
+    <!-- Label for the 'Each Usage Amount' of a therapy [CHAR LIMIT=15] -->
+    <string name="each_usage_amount_label">Amount</string>
+
+    <!-- Label for the 'Reminder Number' of a therapy [CHAR LIMIT=15] -->
+    <string name="reminder_number_label">NO.<xliff:g id="domain">%d</xliff:g>:</string>
+
 </resources>

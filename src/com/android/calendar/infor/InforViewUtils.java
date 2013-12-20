@@ -31,6 +31,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -290,4 +291,86 @@ public class InforViewUtils {
             }
         }
     }
+
+    /**
+     * Set the list of labels on a reminder spinner.
+     */
+    private static void setTherapyReminderSpinnerLabels(Activity activity, Spinner spinner,
+            ArrayList<String> labels) {
+        Resources res = activity.getResources();
+        spinner.setPrompt(res.getString(R.string.reminders_label));
+        int resource = android.R.layout.simple_spinner_item;
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(activity, resource, labels);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+    }
+
+    /**
+     * Adds a reminder to the displayed list of reminders. The values/labels
+     * arrays must not change after calling here, or the spinners we created
+     * might index into the wrong entry. Returns true if successfully added
+     * reminder, false if no reminders can be added.
+     *
+     * onItemSelected allows a listener to be set for any changes to the
+     * spinners in the reminder. If a listener is set it will store the
+     * initial position of the spinner into the spinner's tag for comparison
+     * with any new position setting.
+     */
+    public static boolean addTherapyReminder(Activity activity, View view, View.OnClickListener listener,
+            ArrayList<LinearLayout> items, ArrayList<Integer> values,
+            ArrayList<String> labels, int number,
+			int maxTherapyReminders,
+            OnItemSelectedListener onItemSelected) {
+
+        if (items.size() >= maxTherapyReminders) {
+            return false;
+        }
+
+        LayoutInflater inflater = activity.getLayoutInflater();
+        LinearLayout parent = (LinearLayout) view.findViewById(R.id.reminder_items_container);
+        LinearLayout reminderItem = (LinearLayout) inflater.inflate(R.layout.edit_therapy_reminder_item,
+                null);
+        parent.addView(reminderItem);
+
+        ImageButton reminderRemoveButton;
+        reminderRemoveButton = (ImageButton) reminderItem.findViewById(R.id.reminder_remove);
+        reminderRemoveButton.setOnClickListener(listener);
+
+		TextView labelTextView = (TextView) reminderItem.findViewById(R.id.reminder_number_label);
+		labelTextView.setText(activity.getString(R.string.reminder_number_label, number));
+
+        /*
+         * The spinner has the default set of labels from the string resource file, but we
+         * want to drop in our custom set of labels because it may have additional entries.
+         */
+        Spinner spinner = (Spinner) reminderItem.findViewById(R.id.therapy_reminder_value);
+        setTherapyReminderSpinnerLabels(activity, spinner, labels);
+
+        if (onItemSelected != null) {
+            spinner.setOnItemSelectedListener(onItemSelected);
+        }
+
+        items.add(reminderItem);
+
+        return true;
+    }
+
+    /**
+     * Enables/disables the 'add reminder' button depending on the current number of
+     * reminders.
+     */
+    public static void updateAddTherapyReminderButton(View view, ArrayList<LinearLayout> reminders,
+            int maxTherapyReminders) {
+        View reminderAddButton = view.findViewById(R.id.reminder_add);
+        if (reminderAddButton != null) {
+            if (reminders.size() >= maxTherapyReminders) {
+                reminderAddButton.setEnabled(false);
+                reminderAddButton.setVisibility(View.GONE);
+            } else {
+                reminderAddButton.setEnabled(true);
+                reminderAddButton.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
 }
