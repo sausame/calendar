@@ -27,6 +27,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -316,11 +317,11 @@ public class InforViewUtils {
      * initial position of the spinner into the spinner's tag for comparison
      * with any new position setting.
      */
-    public static boolean addTherapyReminder(Activity activity, View view, View.OnClickListener listener,
+    public static boolean addTherapyReminder(Activity activity, View view,
+				View.OnClickListener removeListener,
             ArrayList<LinearLayout> items, ArrayList<Integer> values,
             ArrayList<String> labels, int number,
-			int maxTherapyReminders,
-            OnItemSelectedListener onItemSelected) {
+			int maxTherapyReminders, View.OnClickListener setTimeListener) {
 
         if (items.size() >= maxTherapyReminders) {
             return false;
@@ -334,21 +335,14 @@ public class InforViewUtils {
 
         ImageButton reminderRemoveButton;
         reminderRemoveButton = (ImageButton) reminderItem.findViewById(R.id.reminder_remove);
-        reminderRemoveButton.setOnClickListener(listener);
+        reminderRemoveButton.setOnClickListener(removeListener);
 
 		TextView labelTextView = (TextView) reminderItem.findViewById(R.id.reminder_number_label);
 		labelTextView.setText(activity.getString(R.string.reminder_number_label, number));
 
-        /*
-         * The spinner has the default set of labels from the string resource file, but we
-         * want to drop in our custom set of labels because it may have additional entries.
-         */
-        Spinner spinner = (Spinner) reminderItem.findViewById(R.id.therapy_reminder_value);
-        setTherapyReminderSpinnerLabels(activity, spinner, labels);
-
-        if (onItemSelected != null) {
-            spinner.setOnItemSelectedListener(onItemSelected);
-        }
+		Button setTimeButton;
+        setTimeButton = (Button) reminderItem.findViewById(R.id.therapy_reminder_time);
+        setTimeButton.setOnClickListener(setTimeListener);
 
         items.add(reminderItem);
 

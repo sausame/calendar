@@ -30,6 +30,7 @@ import android.graphics.drawable.Drawable;
 import android.provider.CalendarContract.Calendars;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.view.LayoutInflater;
@@ -44,6 +45,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.android.calendar.CalendarEventModel;
 import com.android.calendar.EmailAddressAdapter;
@@ -56,6 +58,9 @@ import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
 import com.android.datetimepicker.date.DatePickerDialog.OnDateSetListener;
+import com.android.datetimepicker.time.RadialPickerLayout;
+import com.android.datetimepicker.time.TimePickerDialog;
+import com.android.datetimepicker.time.TimePickerDialog.OnTimeSetListener;
 import com.android.ex.chips.AccountSpecifier;
 
 import java.util.ArrayList;
@@ -68,6 +73,8 @@ public class EditTherapyView implements View.OnClickListener,
 
 	private static final String TAG = "EditEvent";
 	private static final String FRAG_TAG_DATE_PICKER = "datePickerDialogFragment";
+    private static final String FRAG_TAG_TIME_PICKER = "timePickerDialogFragment";
+
 	ArrayList<View> mEditOnlyList = new ArrayList<View>();
 	ArrayList<View> mEditViewList = new ArrayList<View>();
 	ArrayList<View> mViewOnlyList = new ArrayList<View>();
@@ -120,6 +127,52 @@ public class EditTherapyView implements View.OnClickListener,
 			0);
 
 	private String mRrule;
+
+    /* This class is used to update the time buttons. */
+    private class TimeListener implements OnTimeSetListener {
+        private View mView;
+        private Time mTime;
+
+        public TimeListener(View view, Time time) {
+            mView = view;
+            mTime = time;
+        }
+
+		@Override
+		public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
+            // Cache the member variables locally to avoid inner class overhead.
+            Time tm = mTime;
+
+			tm.hour = hourOfDay;
+			tm.minute = minute;
+
+            // Cache the millis so that we limit the number of calls to 
+			// normalize() and toMillis(), which are fairly expensive.
+            long millis = tm.normalize(true);
+            setTime((Button) mView, millis);				
+		}
+    }
+
+    private class TimeClickListener implements View.OnClickListener {
+        private Time mTime;
+
+        public TimeClickListener(Time time) {
+            mTime = time;
+        }
+
+        @Override
+        public void onClick(View v) {
+            final FragmentManager fm = mActivity.getFragmentManager();
+            fm.executePendingTransactions();
+
+            TimePickerDialog dialog = TimePickerDialog.newInstance(new TimeListener(v, mTime),
+                            mTime.hour, mTime.minute, DateFormat.is24HourFormat(mActivity));
+			
+            if (dialog != null && !dialog.isAdded()) {
+                dialog.show(fm, FRAG_TAG_TIME_PICKER);
+            }
+        }
+    }
 
 	private class DateListener implements OnDateSetListener {
 		View mView;
@@ -567,13 +620,13 @@ public class EditTherapyView implements View.OnClickListener,
 					mReminderItems, mReminderTypeValues,
 					mReminderTypeLabels, 
 					1,
-					Integer.MAX_VALUE, null);
+					Integer.MAX_VALUE, new TimeClickListener(new Time()));
 		} else {
 			InforViewUtils.addTherapyReminder(mActivity, mScrollView, this,
 					mReminderItems, mReminderTypeValues,
 					mReminderTypeLabels, 					
 					1,
-					Integer.MAX_VALUE, null);
+					Integer.MAX_VALUE, new TimeClickListener(new Time()));
 		}
 		updateBodyStatussVisibility(mReminderItems.size());
 		InforViewUtils.updateAddTherapyReminderButton(mView, mReminderItems, Integer.MAX_VALUE);
@@ -599,6 +652,28 @@ public class EditTherapyView implements View.OnClickListener,
 		}
 		view.setText(dateString);
 	}
+
+    private void setTime(TextView view, long millis) {
+        int flags = DateUtils.FORMAT_SHOW_TIME;
+        flags |= DateUtils.FORMAT_CAP_NOON_MIDNIGHT;
+        if (DateFormat.is24HourFormat(mActivity)) {
+            flags |= DateUtils.FORMAT_24HOUR;
+        }
+
+        // Unfortunately, DateUtils doesn't support a timezone other than the
+        // default timezone provided by the system, so we have this ugly hack
+        // here to trick it into formatting our time correctly. In order to
+        // prevent all sorts of craziness, we synchronize on the TimeZone class
+        // to prevent other threads from reading an incorrect timezone from
+        // calls to TimeZone#getDefault()
+        // TODO fix this if/when DateUtils allows for passing in a timezone
+        String timeString;
+        synchronized (TimeZone.class) {
+            timeString = DateUtils.formatDateTime(mActivity, millis, flags);
+            TimeZone.setDefault(null);
+        }
+        view.setText(timeString);
+    }
 
 	@Override
 	public void onItemSelected(AdapterView<?> parent, View view, int position,
