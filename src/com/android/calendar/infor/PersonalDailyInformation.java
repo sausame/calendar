@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.database.Cursor;
+import android.text.format.Time;
 
 public class PersonalDailyInformation implements Serializable {
 
@@ -124,6 +125,145 @@ public class PersonalDailyInformation implements Serializable {
      *
      * Instances of the class are immutable.
      */
+    public static class Therapy implements Comparable<Therapy>, Serializable {
+        private int mType;
+        private String mName;
+		private int mTimes;
+		private int mUsage;
+		private Date mDay;
+		private Time mRemindersGroup[];
+		private String mDescription;
+		private boolean mPrivacy;
+
+        /**
+         * Constructs a new Therapy.
+         *
+         */
+        private Therapy() {
+            // TODO: error-check args
+        }
+
+        @Override
+        public int hashCode() {
+            return mType * 10;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof Therapy)) {
+                return false;
+            }
+
+            Therapy re = (Therapy) obj;
+
+			// XXX Compare
+
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "";
+        }
+
+        /**
+         * Comparison function for a sort ordered primarily descending by type,
+         * secondarily ascending by value type.
+         */
+        @Override
+        public int compareTo(Therapy re) {
+            return 0;
+        }
+
+        /** Returns the type. */
+        public int getType() {
+            return mType;
+        }
+
+        /** Set the type. */
+        public void setType(int type) {
+            mType = type;
+        }
+
+        /** Returns the name. */
+        public String getName() {
+            return mName;
+        }
+
+        /** Set the name. */
+        public void setName(String name) {
+            mName = name;
+        }
+
+        /** Returns the times. */
+        public int getTimes() {
+            return mTimes;
+        }
+
+        /** Set the times. */
+        public void setTimes(int times) {
+            mTimes = times;
+        }
+
+        /** Returns the usage. */
+        public int getUsage() {
+            return mUsage;
+        }
+
+        /** Set the usage. */
+        public void setUsage(int usage) {
+            mUsage = usage;
+        }
+
+        /** Returns the day. */
+        public Date getDay() {
+            return mDay;
+        }
+
+        /** Set the day. */
+        public void setDay(Date day) {
+            mDay = day;
+        }
+
+        /** Returns the reminders group. */
+        public Time[] getRemindersGroup() {
+            return mRemindersGroup;
+        }
+
+        /** Set the reminders group. */
+        public void setRemindersGroup(Time[] remindersGroup) {
+            mRemindersGroup = remindersGroup;
+        }
+
+        /** Returns the description. */
+        public String getDescription() {
+            return mDescription;
+        }
+
+        /** Set the description. */
+        public void setDescription(String description) {
+            mDescription = description;
+        }
+
+        /** Returns the privacy. */
+        public boolean getPrivacy() {
+            return mPrivacy;
+        }
+
+        /** Set the privacy. */
+        public void setPrivacy(boolean privacy) {
+            mPrivacy = privacy;
+        }
+    }
+
+    /**
+     * A single body status entry.
+     *
+     * Instances of the class are immutable.
+     */
     public static class BodyStatusEntry implements Comparable<BodyStatusEntry>, Serializable {
         private final int mType;
         private final String mValue;
@@ -213,6 +353,7 @@ public class PersonalDailyInformation implements Serializable {
             return mValue;
         }
     }
+
 
 
 	public static class DetailInformation implements Serializable {
