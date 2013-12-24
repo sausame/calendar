@@ -125,11 +125,24 @@ public class PersonalDailyInformation implements Serializable {
      *
      * Instances of the class are immutable.
      */
-    public static class Therapy implements Comparable<Therapy>, Serializable {
+    public static class Therapy implements Comparable<Therapy>, Serializable { 
+
+		// In every time.
+		public final int USAGE_TYPE_NUMBER = 1;
+		public final int USAGE_TYPE_MILLILITER = 2;
+		public final int USAGE_TYPE_TIME_SECONDS = 3;
+		public final int USAGE_TYPE_TIME_MINUTES = 4;
+		public final int USAGE_TYPE_TIME_HOURS = 5;
+
         private int mType;
         private String mName;
-		private int mTimes;
-		private int mUsage;
+
+		// XXX: We should put usages together.
+		// They will be replaced with one or two rule in the future.
+		private String mUsageRule;
+		private int mNumberInEveryTime;
+		private int mUsageTypeInEveryTime;
+
 		private Date mDay;
 		private Time mRemindersGroup[];
 		private String mDescription;
@@ -198,24 +211,34 @@ public class PersonalDailyInformation implements Serializable {
             mName = name;
         }
 
-        /** Returns the times. */
-        public int getTimes() {
-            return mTimes;
+        /** Returns the usageRule. */
+        public String getUsageRule() {
+            return mUsageRule;
         }
 
-        /** Set the times. */
-        public void setTimes(int times) {
-            mTimes = times;
+        /** Set the usageRule. */
+        public void setUsageRule(String rule) {
+            mUsageRule = rule;
+        }
+
+        /** Returns the number. */
+        public int getNumberInEveryTime() {
+            return mNumberInEveryTime;
+        }
+
+        /** Set the number. */
+        public void setNumberInEveryTime(int number) {
+            mNumberInEveryTime = number;
         }
 
         /** Returns the usage. */
-        public int getUsage() {
-            return mUsage;
+        public int getUsageTypeInEveryTime() {
+            return mUsageTypeInEveryTime;
         }
 
         /** Set the usage. */
-        public void setUsage(int usage) {
-            mUsage = usage;
+        public void setUsageTypeInEveryTime(int type) {
+            mUsageTypeInEveryTime = type;
         }
 
         /** Returns the day. */

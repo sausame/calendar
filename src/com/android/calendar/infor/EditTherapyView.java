@@ -27,6 +27,7 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.provider.CalendarContract.Calendars;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -49,12 +50,14 @@ import android.widget.TimePicker;
 
 import com.android.calendar.CalendarEventModel;
 import com.android.calendar.EmailAddressAdapter;
+import com.android.calendar.EventRecurrenceFormatter;
 import com.android.calendar.GeneralPreferences;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper;
 import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
+import com.android.calendar.recurrencepicker.RecurrencePickerDialog;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
 import com.android.datetimepicker.date.DatePickerDialog.OnDateSetListener;
@@ -69,11 +72,13 @@ import java.util.TimeZone;
 
 public class EditTherapyView implements View.OnClickListener,
 		DialogInterface.OnCancelListener, DialogInterface.OnClickListener,
+        RecurrencePickerDialog.OnRecurrenceSetListener,
 		OnItemSelectedListener {
 
 	private static final String TAG = "EditEvent";
 	private static final String FRAG_TAG_DATE_PICKER = "datePickerDialogFragment";
     private static final String FRAG_TAG_TIME_PICKER = "timePickerDialogFragment";
+    private static final String FRAG_TAG_RECUR_PICKER = "recurrencePickerDialogFragment";
 
 	ArrayList<View> mEditOnlyList = new ArrayList<View>();
 	ArrayList<View> mEditViewList = new ArrayList<View>();
@@ -90,6 +95,7 @@ public class EditTherapyView implements View.OnClickListener,
 	LinearLayout mReminderesContainer;
 	View mDescriptionGroup;
 	View mReminderesGroup;
+    Button mUsageRuleButton;
 
 	private int[] mOriginalPadding = new int[4];
 
@@ -199,6 +205,7 @@ public class EditTherapyView implements View.OnClickListener,
 				startMillis = whenTime.normalize(true);
 
 				setDate(mWhenButton, startMillis);
+				populateUsage();
 			}
 		}
 	}
@@ -210,6 +217,41 @@ public class EditTherapyView implements View.OnClickListener,
 
 		mWhenButton.setOnClickListener(new DateClickListener(mWhenTime));
 	}
+
+    private void populateUsage() {
+        Resources r = mActivity.getResources();
+        String usageString;
+        boolean enabled;
+        if (!TextUtils.isEmpty(mRrule)) {
+            usageString = EventRecurrenceFormatter.getRepeatString(mActivity, r,
+                    mEventRecurrence, true);
+
+            if (usageString == null) {
+                usageString = r.getString(R.string.custom);
+                Log.e(TAG, "Can't generate display string for " + mRrule);
+                enabled = false;
+            } else {
+                // TODO Should give option to clear/reset rrule
+                enabled = RecurrencePickerDialog.canHandleRecurrenceRule(mEventRecurrence);
+                if (!enabled) {
+                    Log.e(TAG, "UI can't handle " + mRrule);
+                }
+            }
+        } else {
+            usageString = r.getString(R.string.does_not_repeat);
+            enabled = true;
+        }
+
+        mUsageRuleButton.setText(usageString);
+
+        // Don't allow the user to make exceptions recurring events.
+        if (mModel.mOriginalSyncId != null) {
+            enabled = false;
+        }
+        mUsageRuleButton.setOnClickListener(this);
+        mUsageRuleButton.setEnabled(enabled);
+    }
+
 
 	private class DateClickListener implements View.OnClickListener {
 		private Time mTime;
@@ -286,6 +328,28 @@ public class EditTherapyView implements View.OnClickListener,
 	// on the "remove reminder" button.
 	@Override
 	public void onClick(View view) {
+        if (view == mUsageRuleButton) {
+            Bundle b = new Bundle();
+            b.putLong(RecurrencePickerDialog.BUNDLE_START_TIME_MILLIS,
+                    mWhenTime.toMillis(false));
+            b.putString(RecurrencePickerDialog.BUNDLE_TIME_ZONE, mWhenTime.timezone);
+
+            // TODO may be more efficient to serialize and pass in EventRecurrence
+            b.putString(RecurrencePickerDialog.BUNDLE_RRULE, mRrule);
+
+            FragmentManager fm = mActivity.getFragmentManager();
+            RecurrencePickerDialog rpd = (RecurrencePickerDialog) fm
+                    .findFragmentByTag(FRAG_TAG_RECUR_PICKER);
+            if (rpd != null) {
+                rpd.dismiss();
+            }
+            rpd = new RecurrencePickerDialog();
+            rpd.setArguments(b);
+            rpd.setOnRecurrenceSetListener(EditTherapyView.this);
+            rpd.show(fm, FRAG_TAG_RECUR_PICKER);
+            return;
+        }
+
 		// This must be a click on one of the "remove reminder" buttons
 		LinearLayout reminderItem = (LinearLayout) view.getParent();
 		LinearLayout parent = (LinearLayout) reminderItem.getParent();
@@ -295,6 +359,17 @@ public class EditTherapyView implements View.OnClickListener,
 /*		InforViewUtils.updateAddBodyStatusButton(mView, mReminderItems,
 				mModel.mCalendarMaxBodyStatuss);*/
 	}
+
+    @Override
+    public void onRecurrenceSet(String rrule) {
+        Log.d(TAG, "Old rrule:" + mRrule);
+        Log.d(TAG, "New rrule:" + rrule);
+        mRrule = rrule;
+        if (mRrule != null) {
+            mEventRecurrence.parse(mRrule);
+        }
+        populateUsage();
+    }
 
 	// This is called if the user cancels the "No calendars" dialog.
 	// The "No calendars" dialog is shown if there are no syncable calendars.
@@ -373,6 +448,7 @@ public class EditTherapyView implements View.OnClickListener,
 		mDescriptionGroup = view.findViewById(R.id.description_row);
 		mTitleTextView.setTag(mTitleTextView.getBackground());
 		mDescriptionTextView.setTag(mDescriptionTextView.getBackground());
+        mUsageRuleButton = (Button) view.findViewById(R.id.usage_button);
 
 		mTherapyTypeSpinner = (Spinner) view.findViewById(R.id.therapy_type);
 
@@ -534,6 +610,7 @@ public class EditTherapyView implements View.OnClickListener,
 		}
 
 		populateWhen();
+        populateUsage();
 
 		updateView();
 		mScrollView.setVisibility(View.VISIBLE);

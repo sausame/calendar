@@ -814,7 +814,7 @@
     <string name="each_label">Each</string>
 
     <!-- Label for the 'Time' of a therapy [CHAR LIMIT=15] -->
-    <string name="each_time_label">Time</string>
+    <string name="usage_every_time_label">Every Time</string>
 
     <!-- Label for the 'Each Usage Amount' of a therapy [CHAR LIMIT=15] -->
     <string name="each_usage_amount_label">Amount</string>

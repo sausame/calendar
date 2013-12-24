@@ -72,6 +72,51 @@
 
     </TableRow>
 
+    <!-- USAGE EVERY TIME -->
+
+    <TableRow
+        android:focusable="true" >
+
+        <TextView
+            android:id="@+id/usage_every_time_label"
+            style="@style/TextAppearance.EditEvent_Label"
+            android:layout_gravity="top|left"
+            android:text="@string/usage_every_time_label" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|right"
+			android:orientation="horizontal" >
+
+			<EditText
+				android:id="@+id/number_in_every_time"
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_weight="1"
+				android:ems="10"
+				android:gravity="center_horizontal"
+				android:inputType="number"
+				android:maxLength="10"
+				android:paddingLeft="4dp"
+				android:paddingRight="4dp"
+				android:selectAllOnFocus="true"
+				android:textSize="15sp"
+				android:singleLine="true" >
+			</EditText>
+
+			<Spinner
+				android:id="@+id/usage_type_in_every_time"
+				android:layout_width="wrap_content"
+				android:layout_height="match_parent"
+				style="@style/TextAppearance.EditEvent_Spinner"
+				android:entries="@array/usage_type_in_every_time_labels"
+				android:prompt="@string/usage_every_time_label" />
+
+        </LinearLayout>
+    </TableRow>
+
+
     <!-- PRIVACY -->
 
     <TableRow android:id="@+id/visibility_row" >
