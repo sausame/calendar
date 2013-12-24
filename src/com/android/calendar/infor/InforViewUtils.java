@@ -116,18 +116,13 @@ public class InforViewUtils {
      * @param reminderMethodValues Maps array index to alert method constant.
      * @return Array with reminder data.
      */
-    public static ArrayList<ReminderEntry> reminderItemsToReminders(
-            ArrayList<LinearLayout> reminderItems, ArrayList<Integer> reminderMinuteValues,
-            ArrayList<Integer> reminderMethodValues) {
+    public static long[] reminderItemsToReminders(ArrayList<LinearLayout> reminderItems) {
         int len = reminderItems.size();
-        ArrayList<ReminderEntry> reminders = new ArrayList<ReminderEntry>(len);
+        long reminders[] = new long[len];
         for (int index = 0; index < len; index++) {
             LinearLayout layout = reminderItems.get(index);
-            Spinner minuteSpinner = (Spinner) layout.findViewById(R.id.reminder_minutes_value);
-            Spinner methodSpinner = (Spinner) layout.findViewById(R.id.reminder_method_value);
-            int minutes = reminderMinuteValues.get(minuteSpinner.getSelectedItemPosition());
-            int method = reminderMethodValues.get(methodSpinner.getSelectedItemPosition());
-            reminders.add(ReminderEntry.valueOf(minutes, method));
+            Spinner spinner = (Spinner) layout.findViewById(R.id.body_status_type);
+            reminders[index] = spinner.getSelectedItemPosition();
         }
         return reminders;
     }

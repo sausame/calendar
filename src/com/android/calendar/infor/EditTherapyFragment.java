@@ -66,6 +66,7 @@ import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EventColorCache;
 import com.android.calendar.event.EventColorPickerDialog;
+import com.android.calendar.infor.PersonalDailyInformation.Therapy;
 import com.android.colorpicker.ColorPickerSwatch.OnColorSelectedListener;
 import com.android.colorpicker.HsvColorComparator;
 
@@ -250,7 +251,8 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
                     }
 
                 }
-                mView.setModel(mModel);
+                
+                mView.setTherapy(new Therapy());
                 mView.setModification(mModification);
             }
         }
@@ -734,7 +736,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
     @Override
     public void onDestroy() {
         if (mView != null) {
-            mView.setModel(null);
+            mView.setTherapy(null);
         }
         if (mModifyDialog != null) {
             mModifyDialog.dismiss();

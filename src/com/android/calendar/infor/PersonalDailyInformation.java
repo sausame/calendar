@@ -128,23 +128,24 @@ public class PersonalDailyInformation implements Serializable {
     public static class Therapy implements Comparable<Therapy>, Serializable { 
 
 		// In every time.
-		public final int USAGE_TYPE_NUMBER = 1;
-		public final int USAGE_TYPE_MILLILITER = 2;
-		public final int USAGE_TYPE_TIME_SECONDS = 3;
-		public final int USAGE_TYPE_TIME_MINUTES = 4;
-		public final int USAGE_TYPE_TIME_HOURS = 5;
+		public final int USAGE_TYPE_NUMBER = 0;
+		public final int USAGE_TYPE_MILLILITER = 1;
+		public final int USAGE_TYPE_TIME_SECONDS = 2;
+		public final int USAGE_TYPE_TIME_MINUTES = 3;
+		public final int USAGE_TYPE_TIME_HOURS = 4;
 
-        private int mType;
+        private int mType = 0;
         private String mName;
 
 		// XXX: We should put usages together.
 		// They will be replaced with one or two rule in the future.
 		private String mUsageRule;
-		private int mNumberInEveryTime;
-		private int mUsageTypeInEveryTime;
+		private int mNumberInEveryTime = 1;
+		private int mUsageTypeInEveryTime = USAGE_TYPE_NUMBER;
 
-		private Date mDay;
-		private Time mRemindersGroup[];
+		private long mDay;
+		private boolean mHasAlarm;
+		private long mRemindersGroup[];
 		private String mDescription;
 		private boolean mPrivacy;
 
@@ -152,7 +153,7 @@ public class PersonalDailyInformation implements Serializable {
          * Constructs a new Therapy.
          *
          */
-        private Therapy() {
+        public Therapy() {
             // TODO: error-check args
         }
 
@@ -179,7 +180,23 @@ public class PersonalDailyInformation implements Serializable {
 
         @Override
         public String toString() {
-            return "";
+			String str = "";
+
+			str += "\nType=" + mType;
+			str += "\nName=" + mName;
+			str += "\nUsageRule=" + mUsageRule;
+			str += "\nNumberInEveryTime=" + mNumberInEveryTime;
+			str += "\nUsageTypeInEveryTime=" + mUsageTypeInEveryTime;
+			str += "\nDay=" + mDay;
+			str += "\nHasAlarm=" + mHasAlarm;
+
+			for (int i = 0; i < mRemindersGroup.length; i ++) {
+				str += "\nNO." + i + ":" + mRemindersGroup[i];;
+			}
+			str += "\nDescription=" + mDescription;
+			str += "\nPrivacy=" + mPrivacy;
+
+            return str;
         }
 
         /**
@@ -242,22 +259,32 @@ public class PersonalDailyInformation implements Serializable {
         }
 
         /** Returns the day. */
-        public Date getDay() {
+        public long getDay() {
             return mDay;
         }
 
         /** Set the day. */
-        public void setDay(Date day) {
+        public void setDay(long day) {
             mDay = day;
         }
 
+        /** Returns the hasAlarm. */
+        public boolean getHasAlarm() {
+            return mHasAlarm;
+        }
+
+        /** Set the hasAlarm. */
+        public void setHasAlarm(boolean hasAlarm) {
+            mHasAlarm = hasAlarm;
+        }
+
         /** Returns the reminders group. */
-        public Time[] getRemindersGroup() {
+        public long[] getRemindersGroup() {
             return mRemindersGroup;
         }
 
-        /** Set the reminders group. */
-        public void setRemindersGroup(Time[] remindersGroup) {
+       /** Set the reminders group. */
+        public void setRemindersGroup(long[] remindersGroup) {
             mRemindersGroup = remindersGroup;
         }
 

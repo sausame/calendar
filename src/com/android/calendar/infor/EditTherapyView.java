@@ -48,7 +48,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
-import com.android.calendar.CalendarEventModel;
 import com.android.calendar.EmailAddressAdapter;
 import com.android.calendar.EventRecurrenceFormatter;
 import com.android.calendar.GeneralPreferences;
@@ -57,6 +56,7 @@ import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper;
 import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
+import com.android.calendar.infor.PersonalDailyInformation.Therapy;
 import com.android.calendar.recurrencepicker.RecurrencePickerDialog;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
@@ -85,7 +85,7 @@ public class EditTherapyView implements View.OnClickListener,
 	ArrayList<View> mViewOnlyList = new ArrayList<View>();
 
 	private Spinner mTherapyTypeSpinner;
-	private LevelAdapter mLevelAdapter;
+	private TherapyTypeAdapter mTherapyTypeAdapter;
 
 	TextView mLoadingMessage;
 	ScrollView mScrollView;
@@ -96,6 +96,9 @@ public class EditTherapyView implements View.OnClickListener,
 	View mDescriptionGroup;
 	View mReminderesGroup;
     Button mUsageRuleButton;
+	private TextView mNumberInEveryTimeTextView;
+	private Spinner mUsageTypeInEveryTimeSpinner;
+	private Spinner mPrivacySpinner;
 
 	private int[] mOriginalPadding = new int[4];
 
@@ -105,7 +108,7 @@ public class EditTherapyView implements View.OnClickListener,
 	private Activity mActivity;
 	private EditDoneRunnable mDone;
 	private View mView;
-	private CalendarEventModel mModel;
+	private Therapy mTherapy;
 	private Cursor mCalendarsCursor;
 	private AccountSpecifier mAddressAdapter;
 	public boolean mTimeSelectedWasStartTime;
@@ -202,7 +205,10 @@ public class EditTherapyView implements View.OnClickListener,
 				whenTime.year = year;
 				whenTime.month = month;
 				whenTime.monthDay = monthDay;
+
 				startMillis = whenTime.normalize(true);
+
+				mWhenTime = whenTime;
 
 				setDate(mWhenButton, startMillis);
 				populateUsage();
@@ -244,12 +250,8 @@ public class EditTherapyView implements View.OnClickListener,
 
         mUsageRuleButton.setText(usageString);
 
-        // Don't allow the user to make exceptions recurring events.
-        if (mModel.mOriginalSyncId != null) {
-            enabled = false;
-        }
         mUsageRuleButton.setOnClickListener(this);
-        mUsageRuleButton.setEnabled(enabled);
+        mUsageRuleButton.setEnabled(true);
     }
 
 
@@ -298,28 +300,28 @@ public class EditTherapyView implements View.OnClickListener,
 	 * Does prep steps for saving a calendar event.
 	 * 
 	 * This triggers a parse of the attendees list and checks if the event is
-	 * ready to be saved. An event is ready to be saved so long as a model
+	 * ready to be saved. An event is ready to be saved so long as a therapy
 	 * exists and has a calendar it can be associated with, either because it's
 	 * an existing event or we've finished querying.
 	 * 
-	 * @return false if there is no model or no calendar had been loaded yet,
+	 * @return false if there is no therapy or no calendar had been loaded yet,
 	 *         true otherwise.
 	 */
 	public boolean prepareForSave() {
-		if (mModel == null || (mCalendarsCursor == null && mModel.mUri == null)) {
+		if (mTherapy == null) {
 			return false;
 		}
-		return fillModelFromUI();
+		return fillTherapyFromUI();
 	}
 
-	public boolean fillModelFromReadOnlyUi() {
-		if (mModel == null || (mCalendarsCursor == null && mModel.mUri == null)) {
+	public boolean fillTherapyFromReadOnlyUi() {
+		if (mTherapy == null) {
 			return false;
 		}
-/*		mModel.mReminders = InforViewUtils.reminderItemsToBodyStatuss(
+/*		mTherapy.mReminders = InforViewUtils.reminderItemsToBodyStatuss(
 				mReminderItems, mReminderTypeValues, mReminderTypeDefaultValues);
-		mModel.mReminders.addAll(mUnsupportedBodyStatuss);
-		mModel.normalizeBodyStatuss();*/
+		mTherapy.mReminders.addAll(mUnsupportedBodyStatuss);
+		mTherapy.normalizeBodyStatuss();*/
 		return true;
 	}
 
@@ -357,7 +359,7 @@ public class EditTherapyView implements View.OnClickListener,
 		mReminderItems.remove(reminderItem);
 		updateBodyStatussVisibility(mReminderItems.size());
 /*		InforViewUtils.updateAddBodyStatusButton(mView, mReminderItems,
-				mModel.mCalendarMaxBodyStatuss);*/
+				mTherapy.mCalendarMaxBodyStatuss);*/
 	}
 
     @Override
@@ -401,29 +403,31 @@ public class EditTherapyView implements View.OnClickListener,
 		}
 	}
 
-	// Goes through the UI elements and updates the model as necessary
-	private boolean fillModelFromUI() {
-		if (mModel == null) {
+	// Goes through the UI elements and updates the therapy as necessary
+	private boolean fillTherapyFromUI() {
+		if (mTherapy == null) {
 			return false;
 		}
-/*		mModel.mReminders = InforViewUtils.reminderItemsToBodyStatuss(
-				mReminderItems, mReminderTypeValues, mReminderTypeDefaultValues);
-		mModel.mReminders.addAll(mUnsupportedBodyStatuss);
-		mModel.normalizeBodyStatuss();*/
-		mModel.mHasAlarm = mReminderItems.size() > 0;
-		mModel.mTitle = mTitleTextView.getText().toString();
-		mModel.mDescription = mDescriptionTextView.getText().toString();
-		if (TextUtils.isEmpty(mModel.mLocation)) {
-			mModel.mLocation = null;
-		}
-		if (TextUtils.isEmpty(mModel.mDescription)) {
-			mModel.mDescription = null;
-		}
+		
+		mTherapy.setType(mTherapyTypeSpinner.getSelectedItemPosition());
+
+		mTherapy.setName(mTitleTextView.getText().toString());
+		mTherapy.setDescription(mDescriptionTextView.getText().toString());
+
+		mTherapy.setUsageRule(mRrule);
+		mTherapy.setNumberInEveryTime(Integer.parseInt(mNumberInEveryTimeTextView.getText().toString()));
+		mTherapy.setUsageTypeInEveryTime(mUsageTypeInEveryTimeSpinner.getSelectedItemPosition());
+
+		mTherapy.setPrivacy(mPrivacySpinner.getSelectedItemPosition() == 0);
+
+		mTherapy.setHasAlarm(mReminderItems.size() > 0);
+		mTherapy.setRemindersGroup(InforViewUtils.reminderItemsToReminders(mReminderItems));
 
 		mWhenTime.hour = 0;
 		mWhenTime.minute = 0;
 		mWhenTime.second = 0;
-		mModel.mStart = mWhenTime.normalize(true);
+
+		mTherapy.setDay(mWhenTime.normalize(true));
 
 		return true;
 	}
@@ -451,9 +455,8 @@ public class EditTherapyView implements View.OnClickListener,
         mUsageRuleButton = (Button) view.findViewById(R.id.usage_button);
 
 		mTherapyTypeSpinner = (Spinner) view.findViewById(R.id.therapy_type);
-
-		mLevelAdapter = new LevelAdapter(activity);
-		mTherapyTypeSpinner.setAdapter(mLevelAdapter);
+		mTherapyTypeAdapter = new TherapyTypeAdapter(activity);
+		mTherapyTypeSpinner.setAdapter(mTherapyTypeAdapter);
 		mTherapyTypeSpinner.setSelection(0);
 		mTherapyTypeSpinner
 				.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -465,6 +468,11 @@ public class EditTherapyView implements View.OnClickListener,
 					public void onNothingSelected(AdapterView<?> arg0) {
 					}
 				});
+
+
+		mNumberInEveryTimeTextView = (TextView) view.findViewById(R.id.number_in_every_time);
+		mUsageTypeInEveryTimeSpinner = (Spinner) view.findViewById(R.id.usage_type_in_every_time);
+		mPrivacySpinner = (Spinner) view.findViewById(R.id.visibility);
 
         mOriginalPadding[0] = mTitleTextView.getPaddingLeft();
         mOriginalPadding[1] = mTitleTextView.getPaddingTop();
@@ -485,7 +493,7 @@ public class EditTherapyView implements View.OnClickListener,
 		mWhenTime = new Time();
 
 		// Display loading screen
-		setModel(null);
+		setTherapy(null);
 
 		FragmentManager fm = activity.getFragmentManager();
 		mDatePickerDialog = (DatePickerDialog) fm
@@ -541,16 +549,16 @@ public class EditTherapyView implements View.OnClickListener,
 	}
 
 	/**
-	 * Fill in the view with the contents of the given event model. This allows
+	 * Fill in the view with the contents of the given event therapy. This allows
 	 * an edit view to be initialized before the event has been loaded. Passing
-	 * in null for the model will display a loading screen. A non-null model
-	 * will fill in the view's fields with the data contained in the model.
+	 * in null for the therapy will display a loading screen. A non-null therapy
+	 * will fill in the view's fields with the data contained in the therapy.
 	 * 
-	 * @param model
-	 *            The event model to pull the data from
+	 * @param therapy
+	 *            The event therapy to pull the data from
 	 */
-	public void setModel(CalendarEventModel model) {
-		mModel = model;
+	public void setTherapy(Therapy therapy) {
+		mTherapy = therapy;
 
 		// Need to close the autocomplete adapter to prevent leaking cursors.
 		if (mAddressAdapter != null
@@ -559,14 +567,16 @@ public class EditTherapyView implements View.OnClickListener,
 			mAddressAdapter = null;
 		}
 
-		if (model == null) {
+		if (therapy == null) {
 			// Display loading screen
 			mLoadingMessage.setVisibility(View.VISIBLE);
 			mScrollView.setVisibility(View.GONE);
 			return;
 		}
 
-		long begin = model.mStart;
+		mTherapyTypeSpinner.setSelection(therapy.getType());
+
+		long begin = therapy.getDay();
 
 		// Set up the starting times
 		if (begin > 0) {
@@ -574,7 +584,7 @@ public class EditTherapyView implements View.OnClickListener,
 			mWhenTime.normalize(true);
 		}
 
-		mRrule = model.mRrule;
+		mRrule = therapy.getUsageRule();
 		if (!TextUtils.isEmpty(mRrule)) {
 			mEventRecurrence.parse(mRrule);
 		}
@@ -582,6 +592,10 @@ public class EditTherapyView implements View.OnClickListener,
 		if (mEventRecurrence.startDate == null) {
 			mEventRecurrence.startDate = mWhenTime;
 		}
+
+		mNumberInEveryTimeTextView.setTextKeepState("" + therapy.getNumberInEveryTime());
+		mUsageTypeInEveryTimeSpinner.setSelection(therapy.getUsageTypeInEveryTime());
+		mPrivacySpinner.setSelection(therapy.getPrivacy() ? 1 : 0);
 
 		SharedPreferences prefs = GeneralPreferences
 				.getSharedPreferences(mActivity);
@@ -601,12 +615,12 @@ public class EditTherapyView implements View.OnClickListener,
 		};
 		button.setOnClickListener(listener);
 
-		if (model.mTitle != null) {
-			mTitleTextView.setTextKeepState(model.mTitle);
+		if (therapy.getName() != null) {
+			mTitleTextView.setTextKeepState(therapy.getName());
 		}
 
-		if (model.mDescription != null) {
-			mDescriptionTextView.setTextKeepState(model.mDescription);
+		if (therapy.getDescription() != null) {
+			mDescriptionTextView.setTextKeepState(therapy.getDescription());
 		}
 
 		populateWhen();
@@ -619,23 +633,19 @@ public class EditTherapyView implements View.OnClickListener,
 	}
 
 	/**
-	 * Updates the view based on {@link #mModification} and {@link #mModel}
+	 * Updates the view based on {@link #mModification} and {@link #mTherapy}
 	 */
 	public void updateView() {
-		if (mModel == null) {
+		if (mTherapy == null) {
 			return;
 		}
-		if (EditDailyStatusHelper.canModifyEvent(mModel)) {
-			setViewStates(mModification);
-		} else {
-			setViewStates(Utils.MODIFY_UNINITIALIZED);
-		}
+
+		setViewStates(mModification);
 	}
 
 	private void setViewStates(int mode) {
 		// Extra canModify check just in case
-		if (mode == Utils.MODIFY_UNINITIALIZED
-				|| !EditEventHelper.canModifyEvent(mModel)) {
+		if (mode == Utils.MODIFY_UNINITIALIZED) {
 
 			for (View v : mViewOnlyList) {
 				v.setVisibility(View.VISIBLE);
@@ -749,6 +759,8 @@ public class EditTherapyView implements View.OnClickListener,
             timeString = DateUtils.formatDateTime(mActivity, millis, flags);
             TimeZone.setDefault(null);
         }
+        
+        view.setTag(millis);
         view.setText(timeString);
     }
 
@@ -765,45 +777,6 @@ public class EditTherapyView implements View.OnClickListener,
 			return;
 		}
 
-		// Do nothing if the selection didn't change so that reminders will not
-		// get lost
-		int idColumn = c.getColumnIndexOrThrow(Calendars._ID);
-		long calendarId = c.getLong(idColumn);
-		int colorColumn = c.getColumnIndexOrThrow(Calendars.CALENDAR_COLOR);
-		int color = c.getInt(colorColumn);
-		int displayColor = Utils.getDisplayColorFromColor(color);
-
-		// Prevents resetting of data (reminders, etc.) on orientation change.
-		if (calendarId == mModel.mCalendarId
-				&& mModel.isCalendarColorInitialized()
-				&& displayColor == mModel.getCalendarColor()) {
-			return;
-		}
-
-		mModel.mCalendarId = calendarId;
-		mModel.setCalendarColor(displayColor);
-		mModel.mCalendarAccountName = c
-				.getString(EditDailyStatusHelper.CALENDARS_INDEX_ACCOUNT_NAME);
-		mModel.mCalendarAccountType = c
-				.getString(EditDailyStatusHelper.CALENDARS_INDEX_ACCOUNT_TYPE);
-		mModel.setEventColor(mModel.getCalendarColor());
-
-		// Update the max/allowed reminders with the new calendar properties.
-		int maxBodyStatussColumn = c
-				.getColumnIndexOrThrow(Calendars.MAX_REMINDERS);
-
-		int allowedBodyStatussColumn = c
-				.getColumnIndexOrThrow(Calendars.ALLOWED_REMINDERS);
-
-		int allowedAttendeeTypesColumn = c
-				.getColumnIndexOrThrow(Calendars.ALLOWED_ATTENDEE_TYPES);
-		mModel.mCalendarAllowedAttendeeTypes = c
-				.getString(allowedAttendeeTypesColumn);
-		int allowedAvailabilityColumn = c
-				.getColumnIndexOrThrow(Calendars.ALLOWED_AVAILABILITY);
-		mModel.mCalendarAllowedAvailability = c
-				.getString(allowedAvailabilityColumn);
-
 		// Update the UI elements.
 		mReminderItems.clear();
 		LinearLayout reminderLayout = (LinearLayout) mScrollView
@@ -817,10 +790,10 @@ public class EditTherapyView implements View.OnClickListener,
 	}
 
 	// ====================================================================
-	public class LevelAdapter extends BaseAdapter {
+	public class TherapyTypeAdapter extends BaseAdapter {
 		private Context mContext;
 
-		public LevelAdapter(Context context) {
+		public TherapyTypeAdapter(Context context) {
 			mContext = context;
 		}
 
