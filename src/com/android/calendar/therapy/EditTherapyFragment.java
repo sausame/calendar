@@ -253,6 +253,11 @@ public class EditTherapyFragment extends Fragment implements EventHandler {
 
         mHandler = new QueryHandler(activity.getContentResolver());
         mTherapy = Therapy.from(mIntent);
+        if (mTherapy == null) {
+        	mTherapy = new Therapy();
+        	mTherapy.setId(-1);
+        }
+        
         mInputMethodManager = (InputMethodManager)
                 activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 

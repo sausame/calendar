@@ -319,6 +319,6 @@ public class Therapy implements Comparable<Therapy>, Serializable {
     }
 
 	public boolean isEmpty() {
-		return this.mName.isEmpty();
+		return this.mName == null || this.mName.isEmpty();
 	}
 }
