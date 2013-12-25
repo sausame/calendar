@@ -742,7 +742,10 @@
     <string name="notification_sender_id"></string>
     
     <!-- Do Not Translate. -->
-    <string name="infor_filename">/sdcard/0.json</string>
+    <string name="infor_filename">/sdcard/infor.json</string>
+    
+    <!-- Do Not Translate. -->
+    <string name="therapy_filename">/sdcard/therapy.json</string>
     
     <!-- EditDailyStatusActivity specific strings: -->
     <skip/>

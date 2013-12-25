@@ -9,6 +9,8 @@ import com.android.calendar.infor.PersonalDailyInformationCursor;
 import com.android.calendar.month.MonthByWeekAdapter;
 import com.android.calendar.month.MonthByWeekFragment;
 import com.android.calendar.month.SimpleWeekView;
+import com.android.calendar.therapy.Therapy;
+import com.android.calendar.therapy.TherapyManager;
 
 import android.app.LoaderManager;
 import android.content.ContentResolver;
@@ -470,5 +472,21 @@ public class CalendarDatabase {
 			ContentUris.appendId(builder, end);
 			return builder.build();
 		}
+	}
+
+	// ------------------------------------------------------------------------------
+	// For therapy.
+	// ------------------------------------------------------------------------------
+	public static boolean saveTherapy(Context context, Therapy therapy,
+			Therapy originalTherapy, int modification) {
+		TherapyManager manager = new TherapyManager();
+		
+		manager.setPathname(context.getResources().getString(
+				R.string.therapy_filename));
+		if (originalTherapy != null) {
+			return manager.modify(originalTherapy, therapy);
+		}
+		
+		return manager.add(therapy);
 	}
 }

@@ -58,7 +58,7 @@ import java.util.TimeZone;
 public class EditDailyStatusHelper {
     private static final String TAG = "EditDailyStatusHelper";
 
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     // Used for parsing rrules for special cases.
     private EventRecurrence mEventRecurrence = new EventRecurrence();
@@ -140,10 +140,10 @@ public class EditDailyStatusHelper {
     public static final int REPEATS_YEARLY = 6;
     public static final int REPEATS_CUSTOM = 7;
 
-    protected static final int MODIFY_UNINITIALIZED = 0;
-    protected static final int MODIFY_SELECTED = 1;
-    protected static final int MODIFY_ALL_FOLLOWING = 2;
-    protected static final int MODIFY_ALL = 3;
+    public static final int MODIFY_UNINITIALIZED = 0;
+    public static final int MODIFY_SELECTED = 1;
+    public static final int MODIFY_ALL_FOLLOWING = 2;
+    public static final int MODIFY_ALL = 3;
 
     protected static final int DAY_IN_SECONDS = 24 * 60 * 60;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.calendar.infor;
+package com.android.calendar.therapy;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -57,16 +57,13 @@ import com.android.calendar.CalendarController;
 import com.android.calendar.CalendarController.EventHandler;
 import com.android.calendar.CalendarController.EventInfo;
 import com.android.calendar.CalendarController.EventType;
-import com.android.calendar.CalendarEventModel;
-import com.android.calendar.CalendarEventModel.Attendee;
-import com.android.calendar.CalendarEventModel.ReminderEntry;
+import com.android.calendar.CalendarDatabase;
 import com.android.calendar.DeleteEventHelper;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EventColorCache;
 import com.android.calendar.event.EventColorPickerDialog;
-import com.android.calendar.infor.PersonalDailyInformation.Therapy;
 import com.android.colorpicker.ColorPickerSwatch.OnColorSelectedListener;
 import com.android.colorpicker.HsvColorComparator;
 
@@ -75,13 +72,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 @SuppressLint("ValidFragment")
-public class EditTherapyFragment extends Fragment implements EventHandler, OnColorSelectedListener {
+public class EditTherapyFragment extends Fragment implements EventHandler {
     private static final String TAG = "EditEventActivity";
     private static final String COLOR_PICKER_DIALOG_TAG = "ColorPickerDialog";
 
-    private static final int REQUEST_CODE_COLOR_PICKER = 0;
-
-    private static final String BUNDLE_KEY_MODEL = "key_model";
+    private static final String BUNDLE_KEY_MODEL = "key_therapy";
     private static final String BUNDLE_KEY_EDIT_STATE = "key_edit_state";
     private static final String BUNDLE_KEY_EVENT = "key_event";
     private static final String BUNDLE_KEY_READ_ONLY = "key_read_only";
@@ -104,15 +99,14 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
 
     /**
      * A bitfield of TOKEN_* to keep track which query hasn't been completed
-     * yet. Once all queries have returned, the model can be applied to the
+     * yet. Once all queries have returned, the therapy can be applied to the
      * view.
      */
     private int mOutstandingQueries = TOKEN_UNITIALIZED;
 
-    EditDailyStatusHelper mHelper;
-    CalendarEventModel mModel;
-    CalendarEventModel mOriginalModel;
-    CalendarEventModel mRestoreModel;
+    Therapy mTherapy;
+    Therapy mOriginalTherapy = null;
+    Therapy mRestoreTherapy;
     EditTherapyView mView;
     QueryHandler mHandler;
 
@@ -121,15 +115,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
 
     private final EventInfo mEvent;
     private EventBundle mEventBundle;
-    private ArrayList<ReminderEntry> mReminders;
-    private int mEventColor;
-    private boolean mEventColorInitialized = false;
     private Uri mUri;
-    private long mBegin;
-    private long mEnd;
-    private long mCalendarId = -1;
-
-    private EventColorPickerDialog mColorPickerDialog;
 
     private Activity mActivity;
     private final Done mOnDone = new Done();
@@ -137,7 +123,6 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
     private boolean mSaveOnDetach = true;
     private boolean mIsReadOnly = false;
     public boolean mShowModifyDialogOnLaunch = false;
-    private boolean mShowColorPalette = false;
 
     private boolean mTimeSelectedWasStartTime;
     private boolean mDateSelectedWasStartDate;
@@ -156,7 +141,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
     };
 
     // TODO turn this into a helper function in EditDailyStatusHelper for building the
-    // model
+    // therapy
     private class QueryHandler extends AsyncQueryHandler {
         public QueryHandler(ContentResolver cr) {
             super(cr);
@@ -188,25 +173,12 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
                         mOnDone.run();
                         return;
                     }
-                    mOriginalModel = new CalendarEventModel();
-                    EditDailyStatusHelper.setModelFromCursor(mOriginalModel, cursor);
-                    EditDailyStatusHelper.setModelFromCursor(mModel, cursor);
+                    mOriginalTherapy = Therapy.parse(cursor);
+                    mTherapy = Therapy.parse(cursor);
+                    
                     cursor.close();
 
-                    mOriginalModel.mUri = mUri.toString();
-
-                    mModel.mUri = mUri.toString();
-                    mModel.mOriginalStart = mBegin;
-                    mModel.mOriginalEnd = mEnd;
-                    mModel.mIsFirstEventInSeries = mBegin == mOriginalModel.mStart;
-                    mModel.mStart = mBegin;
-                    mModel.mEnd = mEnd;
-                    if (mEventColorInitialized) {
-                        mModel.setEventColor(mEventColor);
-                    }
-                    eventId = mModel.mId;
-
-                    setModelIfDone(TOKEN_EVENT);
+                    setTherapyIfDone(TOKEN_EVENT);
                     break;
                 default:
                     cursor.close();
@@ -215,41 +187,15 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
         }
     }
 
-    private View.OnClickListener mOnColorPickerClicked = new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            int[] colors = mModel.getCalendarEventColors();
-            if (mColorPickerDialog == null) {
-                mColorPickerDialog = EventColorPickerDialog.newInstance(colors,
-                        mModel.getEventColor(), mModel.getCalendarColor(), mView.mIsMultipane);
-                mColorPickerDialog.setOnColorSelectedListener(EditTherapyFragment.this);
-            } else {
-                mColorPickerDialog.setCalendarColor(mModel.getCalendarColor());
-                mColorPickerDialog.setColors(colors, mModel.getEventColor());
-            }
-            final FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.executePendingTransactions();
-            if (!mColorPickerDialog.isAdded()) {
-                mColorPickerDialog.show(fragmentManager, COLOR_PICKER_DIALOG_TAG);
-            }
-        }
-    };
-
-    private void setModelIfDone(int queryType) {
+    private void setTherapyIfDone(int queryType) {
         synchronized (this) {
             mOutstandingQueries &= ~queryType;
             if (mOutstandingQueries == 0) {
-                if (mRestoreModel != null) {
-                    mModel = mRestoreModel;
+                if (mRestoreTherapy != null) {
+                    mTherapy = mRestoreTherapy;
                 }
                 if (mShowModifyDialogOnLaunch && mModification == Utils.MODIFY_UNINITIALIZED) {
-                    if (!TextUtils.isEmpty(mModel.mRrule)) {
-                        displayEditWhichDialog();
-                    } else {
                         mModification = Utils.MODIFY_ALL;
-                    }
-
                 }
                 
                 mView.setTherapy(new Therapy());
@@ -259,107 +205,45 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
     }
 
     public EditTherapyFragment() {
-        this(null, null, false, -1, false, null);
+        this(null, false, null);
     }
 
-    public EditTherapyFragment(EventInfo event, ArrayList<ReminderEntry> reminders,
-            boolean eventColorInitialized, int eventColor, boolean readOnly, Intent intent) {
+    public EditTherapyFragment(EventInfo event, boolean readOnly, Intent intent) {
         mEvent = event;
         mIsReadOnly = readOnly;
         mIntent = intent;
 
-        mReminders = reminders;
-        mEventColorInitialized = eventColorInitialized;
-        if (eventColorInitialized) {
-            mEventColor = eventColor;
-        }
         setHasOptionsMenu(true);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mColorPickerDialog = (EventColorPickerDialog) getActivity().getFragmentManager()
-                .findFragmentByTag(COLOR_PICKER_DIALOG_TAG);
-        if (mColorPickerDialog != null) {
-            mColorPickerDialog.setOnColorSelectedListener(this);
-        }
     }
 
     private void startQuery() {
         mUri = null;
-        mBegin = -1;
-        mEnd = -1;
-        if (mEvent != null) {
-            if (mEvent.id != -1) {
-                mModel.mId = mEvent.id;
-                mUri = ContentUris.withAppendedId(Events.CONTENT_URI, mEvent.id);
-            } else {
-                // New event. All day?
-                mModel.mAllDay = mEvent.extraLong == CalendarController.EXTRA_CREATE_ALL_DAY;
-            }
-            if (mEvent.startTime != null) {
-                mBegin = mEvent.startTime.toMillis(true);
-            }
-            if (mEvent.endTime != null) {
-                mEnd = mEvent.endTime.toMillis(true);
-            }
-            if (mEvent.calendarId != -1) {
-                mCalendarId = mEvent.calendarId;
-            }
-        } else if (mEventBundle != null) {
-            if (mEventBundle.id != -1) {
-                mModel.mId = mEventBundle.id;
-                mUri = ContentUris.withAppendedId(Events.CONTENT_URI, mEventBundle.id);
-            }
-            mBegin = mEventBundle.start;
-            mEnd = mEventBundle.end;
-        }
-
-        if (mReminders != null) {
-            mModel.mReminders = mReminders;
-        }
-
-        if (mEventColorInitialized) {
-            mModel.setEventColor(mEventColor);
-        }
-
-        if (mBegin <= 0) {
-            // use a default value instead
-            mBegin = mHelper.constructDefaultStartTime(System.currentTimeMillis());
-        }
-        if (mEnd < mBegin) {
-            // use a default value instead
-            mEnd = mHelper.constructDefaultEndTime(mBegin);
-        }
-
+ 
         // Kick off the query for the event
         boolean newEvent = mUri == null;
         if (!newEvent) {
-            mModel.mCalendarAccessLevel = Calendars.CAL_ACCESS_NONE;
             mOutstandingQueries = TOKEN_EVENT;
             if (DEBUG) {
                 Log.d(TAG, "startQuery: uri for therapy is " + mUri.toString());
             }
-            mHandler.startQuery(TOKEN_EVENT, null, mUri, EditDailyStatusHelper.EVENT_PROJECTION,
-                    null /* selection */, null /* selection args */, null /* sort order */);
+            
+            // Query.
         } else {
             mOutstandingQueries = TOKEN_EVENT;
             if (DEBUG) {
                 Log.d(TAG, "startQuery: Editing a new therapy.");
             }
-            mModel.mOriginalStart = mBegin;
-            mModel.mOriginalEnd = mEnd;
-            mModel.mStart = mBegin;
-            mModel.mEnd = mEnd;
-            mModel.mCalendarId = mCalendarId;
-            mModel.mSelfAttendeeStatus = Attendees.ATTENDEE_STATUS_ACCEPTED;
 
             mModification = Utils.MODIFY_ALL;
             mView.setModification(mModification);
         }
         
-        setModelIfDone(TOKEN_EVENT);
+        setTherapyIfDone(TOKEN_EVENT);
     }
 
     @Override
@@ -367,9 +251,8 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
         super.onAttach(activity);
         mActivity = activity;
 
-        mHelper = new EditDailyStatusHelper(activity, null);
         mHandler = new QueryHandler(activity.getContentResolver());
-        mModel = new CalendarEventModel(activity, mIntent);
+        mTherapy = Therapy.from(mIntent);
         mInputMethodManager = (InputMethodManager)
                 activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
@@ -388,6 +271,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
         }
         mView = new EditTherapyView(mActivity, view, mOnDone, mTimeSelectedWasStartTime,
                 mDateSelectedWasStartDate);
+        
         startQuery();
 
         if (mUseCustomActionBar) {
@@ -418,7 +302,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(BUNDLE_KEY_MODEL)) {
-                mRestoreModel = (CalendarEventModel) savedInstanceState.getSerializable(
+                mRestoreTherapy = (Therapy) savedInstanceState.getSerializable(
                         BUNDLE_KEY_MODEL);
             }
             if (savedInstanceState.containsKey(BUNDLE_KEY_EDIT_STATE)) {
@@ -441,9 +325,6 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
             if (savedInstanceState.containsKey(BUNDLE_KEY_DATE_BUTTON_CLICKED)) {
                 mDateSelectedWasStartDate = savedInstanceState.getBoolean(
                         BUNDLE_KEY_DATE_BUTTON_CLICKED);
-            }
-            if (savedInstanceState.containsKey(BUNDLE_KEY_SHOW_COLOR_PALETTE)) {
-                mShowColorPalette = savedInstanceState.getBoolean(BUNDLE_KEY_SHOW_COLOR_PALETTE);
             }
 
         }
@@ -472,90 +353,34 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
      * @param itemId the button or menu item id
      * @return whether the event was handled here
      */
-    private boolean onActionBarItemSelected(int itemId) {
-        if (itemId == R.id.action_done) {
-            if (EditDailyStatusHelper.canModifyEvent(mModel) || EditDailyStatusHelper.canRespond(mModel)) {
-                if (mView != null && mView.prepareForSave()) {
-                    if (mModification == Utils.MODIFY_UNINITIALIZED) {
-                        mModification = Utils.MODIFY_ALL;
-                    }
-                    mOnDone.setDoneCode(Utils.DONE_SAVE | Utils.DONE_EXIT);
-                    mOnDone.run();
-                } else {
-                    mOnDone.setDoneCode(Utils.DONE_REVERT);
-                    mOnDone.run();
-                }
-            } else if (EditDailyStatusHelper.canAddReminders(mModel) && mModel.mId != -1
-                    && mOriginalModel != null && mView.prepareForSave()) {
-                saveReminders();
-                mOnDone.setDoneCode(Utils.DONE_EXIT);
-                mOnDone.run();
-            } else {
-                mOnDone.setDoneCode(Utils.DONE_REVERT);
-                mOnDone.run();
-            }
-        } else if (itemId == R.id.action_cancel) {
-            mOnDone.setDoneCode(Utils.DONE_REVERT);
-            mOnDone.run();
-        }
-        return true;
-    }
+	private boolean onActionBarItemSelected(int itemId) {
+		if (itemId == R.id.action_done) {
+			if (mView != null && mView.prepareForSave()) {
+				if (mModification == Utils.MODIFY_UNINITIALIZED) {
+					mModification = Utils.MODIFY_ALL;
+				}
+				mOnDone.setDoneCode(Utils.DONE_SAVE | Utils.DONE_EXIT);
+				mOnDone.run();
+			} else {
+				mOnDone.setDoneCode(Utils.DONE_REVERT);
+				mOnDone.run();
+			}
 
-    private void saveReminders() {
-        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>(3);
-        boolean changed = EditDailyStatusHelper.saveReminders(ops, mModel.mId, mModel.mReminders,
-                mOriginalModel.mReminders, false /* no force save */);
-
-        if (!changed) {
-            return;
-        }
-
-        AsyncQueryService service = new AsyncQueryService(getActivity());
-        service.startBatch(0, null, Calendars.CONTENT_URI.getAuthority(), ops, 0);
-        // Update the "hasAlarm" field for the event
-        Uri uri = ContentUris.withAppendedId(Events.CONTENT_URI, mModel.mId);
-        int len = mModel.mReminders.size();
-        boolean hasAlarm = len > 0;
-        if (hasAlarm != mOriginalModel.mHasAlarm) {
-            ContentValues values = new ContentValues();
-            values.put(Events.HAS_ALARM, hasAlarm ? 1 : 0);
-            service.startUpdate(0, null, uri, values, null, null, 0);
-        }
-
-        Toast.makeText(mActivity, R.string.saving_event, Toast.LENGTH_SHORT).show();
-    }
+		} else if (itemId == R.id.action_cancel) {
+			mOnDone.setDoneCode(Utils.DONE_REVERT);
+			mOnDone.run();
+		}
+		return true;
+	}
 
     protected void displayEditWhichDialog() {
         if (mModification == Utils.MODIFY_UNINITIALIZED) {
-            final boolean notSynced = TextUtils.isEmpty(mModel.mSyncId);
-            boolean isFirstEventInSeries = mModel.mIsFirstEventInSeries;
             int itemIndex = 0;
             CharSequence[] items;
+			items = new CharSequence[2];
 
-            if (notSynced) {
-                // If this event has not been synced, then don't allow deleting
-                // or changing a single instance.
-                if (isFirstEventInSeries) {
-                    // Still display the option so the user knows all events are
-                    // changing
-                    items = new CharSequence[1];
-                } else {
-                    items = new CharSequence[2];
-                }
-            } else {
-                if (isFirstEventInSeries) {
-                    items = new CharSequence[2];
-                } else {
-                    items = new CharSequence[3];
-                }
-                items[itemIndex++] = mActivity.getText(R.string.modify_event);
-            }
+			items[itemIndex++] = mActivity.getText(R.string.modify_event);
             items[itemIndex++] = mActivity.getText(R.string.modify_all);
-
-            // Do one more check to make sure this remains at the end of the list
-            if (!isFirstEventInSeries) {
-                items[itemIndex++] = mActivity.getText(R.string.modify_all_following);
-            }
 
             // Display the modification dialog.
             if (mModifyDialog != null) {
@@ -569,15 +394,9 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
                             if (which == 0) {
                                 // Update this if we start allowing exceptions
                                 // to unsynced events in the app
-                                mModification = notSynced ? Utils.MODIFY_ALL
-                                        : Utils.MODIFY_SELECTED;
-                                if (mModification == Utils.MODIFY_SELECTED) {
-                                    mModel.mOriginalSyncId = notSynced ? null : mModel.mSyncId;
-                                    mModel.mOriginalId = mModel.mId;
-                                }
+                                mModification = Utils.MODIFY_ALL;
                             } else if (which == 1) {
-                                mModification = notSynced ? Utils.MODIFY_ALL_FOLLOWING
-                                        : Utils.MODIFY_ALL;
+                                mModification =Utils.MODIFY_ALL_FOLLOWING;
                             } else if (which == 2) {
                                 mModification = Utils.MODIFY_ALL_FOLLOWING;
                             }
@@ -598,7 +417,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
         }
     }
 
-    class Done implements EditDailyStatusHelper.EditDoneRunnable {
+    class Done implements EditTherapyView.EditDoneRunnable {
         private int mCode = -1;
 
         @Override
@@ -617,77 +436,50 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
                 mModification = Utils.MODIFY_ALL;
             }
 
-            if ((mCode & Utils.DONE_SAVE) != 0 && mModel != null
-                    && (EditDailyStatusHelper.canRespond(mModel)
-                            || EditDailyStatusHelper.canModifyEvent(mModel))
-                    && mView.prepareForSave()
-                    && !isEmptyNewEvent()
-                    && mModel.normalizeReminders()
-                    && mHelper.saveEvent(mModel, mOriginalModel, mModification)) {
-                int stringResource;
-                if (!mModel.mAttendeesList.isEmpty()) {
-                    if (mModel.mUri != null) {
-                        stringResource = R.string.saving_event_with_guest;
-                    } else {
-                        stringResource = R.string.creating_event_with_guest;
-                    }
-                } else {
-                    if (mModel.mUri != null) {
-                        stringResource = R.string.saving_event;
-                    } else {
-                        stringResource = R.string.creating_event;
-                    }
-                }
-                Toast.makeText(mActivity, stringResource, Toast.LENGTH_SHORT).show();
-            } else if ((mCode & Utils.DONE_SAVE) != 0 && mModel != null && isEmptyNewEvent()) {
-                Toast.makeText(mActivity, R.string.empty_event, Toast.LENGTH_SHORT).show();
-            }
+			if ((mCode & Utils.DONE_SAVE) != 0
+					&& mTherapy != null
+					&& mView.prepareForSave()
+					&& !isEmptyNewTherapy()
+					&& CalendarDatabase.saveTherapy(mActivity, mTherapy,
+							mOriginalTherapy, mModification)) {
+				int stringResource;
+				if (mOriginalTherapy != null) {
+					stringResource = R.string.saving_event;
+				} else {
+					stringResource = R.string.creating_event;
+				}
 
-            if ((mCode & Utils.DONE_DELETE) != 0 && mOriginalModel != null
-                    && EditDailyStatusHelper.canModifyCalendar(mOriginalModel)) {
-                long begin = mModel.mStart;
-                long end = mModel.mEnd;
-                int which = -1;
-                switch (mModification) {
-                    case Utils.MODIFY_SELECTED:
-                        which = DeleteEventHelper.DELETE_SELECTED;
-                        break;
-                    case Utils.MODIFY_ALL_FOLLOWING:
-                        which = DeleteEventHelper.DELETE_ALL_FOLLOWING;
-                        break;
-                    case Utils.MODIFY_ALL:
-                        which = DeleteEventHelper.DELETE_ALL;
-                        break;
-                }
-                DeleteEventHelper deleteHelper = new DeleteEventHelper(
-                        mActivity, mActivity, !mIsReadOnly /* exitWhenDone */);
-                deleteHelper.delete(begin, end, mOriginalModel, which);
+				Toast.makeText(mActivity, stringResource, Toast.LENGTH_SHORT)
+						.show();
+            } else if ((mCode & Utils.DONE_SAVE) != 0 && mTherapy != null && isEmptyNewTherapy()) {
+                Toast.makeText(mActivity, R.string.empty_event, Toast.LENGTH_SHORT).show();
             }
 
             if ((mCode & Utils.DONE_EXIT) != 0) {
                 // This will exit the edit event screen, should be called
                 // when we want to return to the main calendar views
-                if ((mCode & Utils.DONE_SAVE) != 0) {
-                    if (mActivity != null) {
-                        long start = mModel.mStart;
-                        long end = mModel.mEnd;
-                        if (mModel.mAllDay) {
-                            // For allday events we want to go to the day in the
-                            // user's current tz
-                            String tz = Utils.getTimeZone(mActivity, null);
-                            Time t = new Time(Time.TIMEZONE_UTC);
-                            t.set(start);
-                            t.timezone = tz;
-                            start = t.toMillis(true);
+				if ((mCode & Utils.DONE_SAVE) != 0) {
+					if (mActivity != null) {
+						long start = mTherapy.getDay();
+						long end = start;
 
-                            t.timezone = Time.TIMEZONE_UTC;
-                            t.set(end);
-                            t.timezone = tz;
-                            end = t.toMillis(true);
-                        }
-                        CalendarController.getInstance(mActivity).launchViewEvent(-1, start, end,
-                                Attendees.ATTENDEE_STATUS_NONE);
-                    }
+						// For allday events we want to go to the day in the
+						// user's current tz
+						String tz = Utils.getTimeZone(mActivity, null);
+						Time t = new Time(Time.TIMEZONE_UTC);
+						t.set(start);
+						t.timezone = tz;
+						start = t.toMillis(true);
+
+						t.timezone = Time.TIMEZONE_UTC;
+						t.set(end);
+						t.timezone = tz;
+						end = t.toMillis(true);
+
+						CalendarController.getInstance(mActivity)
+								.launchViewEvent(-1, start, end,
+										Attendees.ATTENDEE_STATUS_NONE);
+					}
                 }
                 Activity a = EditTherapyFragment.this.getActivity();
                 if (a != null) {
@@ -705,21 +497,8 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
         }
     }
 
-    boolean isEmptyNewEvent() {
-        if (mOriginalModel != null) {
-            // Not new
-            return false;
-        }
-
-        if (mModel.mOriginalStart != mModel.mStart || mModel.mOriginalEnd != mModel.mEnd) {
-            return false;
-        }
-
-        if (!mModel.mAttendeesList.isEmpty()) {
-            return false;
-        }
-
-        return mModel.isEmpty();
+    boolean isEmptyNewTherapy() {
+        return mTherapy.isEmpty();
     }
 
     @Override
@@ -753,7 +532,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
     @Override
     public void onSaveInstanceState(Bundle outState) {
         mView.prepareForSave();
-        outState.putSerializable(BUNDLE_KEY_MODEL, mModel);
+        outState.putSerializable(BUNDLE_KEY_MODEL, mTherapy);
         outState.putInt(BUNDLE_KEY_EDIT_STATE, mModification);
         if (mEventBundle == null && mEvent != null) {
             mEventBundle = new EventBundle();
@@ -799,10 +578,4 @@ public class EditTherapyFragment extends Fragment implements EventHandler, OnCol
         long end = -1;
     }
 
-    @Override
-    public void onColorSelected(int color) {
-        if (!mModel.isEventColorInitialized() || mModel.getEventColor() != color) {
-            mModel.setEventColor(color);
-        }
-    }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.calendar.infor;
+package com.android.calendar.therapy;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -55,8 +55,7 @@ import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper;
-import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
-import com.android.calendar.infor.PersonalDailyInformation.Therapy;
+import com.android.calendar.infor.EditDailyStatusHelper;
 import com.android.calendar.recurrencepicker.RecurrencePickerDialog;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
@@ -318,7 +317,7 @@ public class EditTherapyView implements View.OnClickListener,
 		if (mTherapy == null) {
 			return false;
 		}
-/*		mTherapy.mReminders = InforViewUtils.reminderItemsToBodyStatuss(
+/*		mTherapy.mReminders = TherapyViewUtils.reminderItemsToBodyStatuss(
 				mReminderItems, mReminderTypeValues, mReminderTypeDefaultValues);
 		mTherapy.mReminders.addAll(mUnsupportedBodyStatuss);
 		mTherapy.normalizeBodyStatuss();*/
@@ -358,7 +357,7 @@ public class EditTherapyView implements View.OnClickListener,
 		parent.removeView(reminderItem);
 		mReminderItems.remove(reminderItem);
 		updateBodyStatussVisibility(mReminderItems.size());
-/*		InforViewUtils.updateAddBodyStatusButton(mView, mReminderItems,
+/*		TherapyViewUtils.updateAddBodyStatusButton(mView, mReminderItems,
 				mTherapy.mCalendarMaxBodyStatuss);*/
 	}
 
@@ -421,7 +420,7 @@ public class EditTherapyView implements View.OnClickListener,
 		mTherapy.setPrivacy(mPrivacySpinner.getSelectedItemPosition() == 0);
 
 		mTherapy.setHasAlarm(mReminderItems.size() > 0);
-		mTherapy.setRemindersGroup(InforViewUtils.reminderItemsToReminders(mReminderItems));
+		mTherapy.setRemindersGroup(TherapyViewUtils.reminderItemsToReminders(mReminderItems));
 
 		mWhenTime.hour = 0;
 		mWhenTime.minute = 0;
@@ -703,20 +702,20 @@ public class EditTherapyView implements View.OnClickListener,
 		// TODO: when adding a new reminder, make it different from the
 		// last one in the list (if any).
 		if (mDefaultBodyStatusMinutes == GeneralPreferences.NO_REMINDER) {
-			InforViewUtils.addTherapyReminder(mActivity, mScrollView, this,
+			TherapyViewUtils.addTherapyReminder(mActivity, mScrollView, this,
 					mReminderItems, mReminderTypeValues,
 					mReminderTypeLabels, 
 					1,
 					Integer.MAX_VALUE, new TimeClickListener(new Time()));
 		} else {
-			InforViewUtils.addTherapyReminder(mActivity, mScrollView, this,
+			TherapyViewUtils.addTherapyReminder(mActivity, mScrollView, this,
 					mReminderItems, mReminderTypeValues,
 					mReminderTypeLabels, 					
 					1,
 					Integer.MAX_VALUE, new TimeClickListener(new Time()));
 		}
 		updateBodyStatussVisibility(mReminderItems.size());
-		InforViewUtils.updateAddTherapyReminderButton(mView, mReminderItems, Integer.MAX_VALUE);
+		TherapyViewUtils.updateAddTherapyReminderButton(mView, mReminderItems, Integer.MAX_VALUE);
 	}
 
 	private void setDate(TextView view, long millis) {
@@ -872,4 +871,7 @@ public class EditTherapyView implements View.OnClickListener,
 
 	}
 
+    public interface EditDoneRunnable extends Runnable {
+        public void setDoneCode(int code);
+    }
 }

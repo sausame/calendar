@@ -36,7 +36,7 @@ import com.android.calendar.CalendarEventModel.ReminderEntry;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
-import com.android.calendar.infor.EditTherapyFragment;
+import com.android.calendar.therapy.EditTherapyFragment;
 
 import java.util.ArrayList;
 
@@ -97,9 +97,11 @@ public class EditEventActivity extends AbstractCalendarActivity {
             if (mEventInfo.id == -1) {
                 intent = getIntent();
             }
-
+/*
             mEditFragment = new EditTherapyFragment(mEventInfo, mReminders, mEventColorInitialized,
                     mEventColor, false, intent);
+*/
+            mEditFragment = new EditTherapyFragment(mEventInfo, false, intent);
 
             mEditFragment.mShowModifyDialogOnLaunch = getIntent().getBooleanExtra(
                     CalendarController.EVENT_EDIT_ON_LAUNCH, false);
