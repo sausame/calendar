@@ -15,6 +15,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.android.calendar.Log;
+
 import android.content.Intent;
 import android.database.Cursor;
 import android.text.format.Time;
@@ -264,6 +266,11 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 	}
 
 	public static Therapy parse(String jsonBuf) {
+		if (jsonBuf == null || jsonBuf.isEmpty()) {
+			Log.v("Empty string: " + jsonBuf);
+			return null;
+		}
+		
 		try {
 			JSONObject object = new JSONObject(jsonBuf);
 			return parse(object);
