@@ -503,6 +503,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler {
     }
 
     boolean isEmptyNewTherapy() {
+    	mTherapy = mView.getTherapy();
         return mTherapy.isEmpty();
     }
 

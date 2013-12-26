@@ -487,6 +487,10 @@ public class CalendarDatabase {
 			return manager.modify(originalTherapy, therapy);
 		}
 		
-		return manager.add(therapy);
+		boolean isOkay = manager.add(therapy);
+		if (isOkay) {
+			manager.save();
+		}
+		return isOkay;
 	}
 }

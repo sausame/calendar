@@ -109,8 +109,12 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 		str += "\nDay=" + mDay;
 		str += "\nHasAlarm=" + mHasAlarm;
 
-		for (int i = 0; i < mRemindersGroup.length; i ++) {
-			str += "\nNO." + i + ":" + mRemindersGroup[i];;
+		if (mRemindersGroup != null) {
+
+			for (int i = 0; i < mRemindersGroup.length; i++) {
+				str += "\nNO." + i + ":" + mRemindersGroup[i];
+				;
+			}
 		}
 		str += "\nDescription=" + mDescription;
 		str += "\nPrivacy=" + mPrivacy;

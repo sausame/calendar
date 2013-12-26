@@ -874,4 +874,8 @@ public class EditTherapyView implements View.OnClickListener,
     public interface EditDoneRunnable extends Runnable {
         public void setDoneCode(int code);
     }
+
+	public Therapy getTherapy() {
+		return mTherapy;
+	}
 }
