@@ -70,6 +70,7 @@ import com.android.colorpicker.HsvColorComparator;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 
 @SuppressLint("ValidFragment")
 public class EditTherapyFragment extends Fragment implements EventHandler {
@@ -198,7 +199,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler {
                         mModification = Utils.MODIFY_ALL;
                 }
                 
-                mView.setTherapy(new Therapy());
+                mView.setTherapy(mTherapy);
                 mView.setModification(mModification);
             }
         }
@@ -256,6 +257,7 @@ public class EditTherapyFragment extends Fragment implements EventHandler {
         if (mTherapy == null) {
         	mTherapy = new Therapy();
         	mTherapy.setId(-1);
+        	mTherapy.setDay((new Date()).getTime());
         }
         
         mInputMethodManager = (InputMethodManager)

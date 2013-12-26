@@ -15,26 +15,17 @@
  */
 package com.android.calendar.therapy;
 
-import com.android.calendar.CalendarEventModel.ReminderEntry;
-import com.android.calendar.Log;
-import com.android.calendar.R;
-import com.android.calendar.infor.PersonalDailyInformation.BodyStatusEntry;
+import java.util.ArrayList;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.res.Resources;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import com.android.calendar.R;
 
 public class TherapyViewUtils {
     private static final String TAG = "TherapyViewUtils";
@@ -55,23 +46,10 @@ public class TherapyViewUtils {
         long reminders[] = new long[len];
         for (int index = 0; index < len; index++) {
             LinearLayout layout = reminderItems.get(index);
-            Spinner spinner = (Spinner) layout.findViewById(R.id.body_status_type);
-            reminders[index] = spinner.getSelectedItemPosition();
+            Button button = (Button) layout.findViewById(R.id.therapy_reminder_time);
+            reminders[index] = (Long) button.getTag();
         }
         return reminders;
-    }
-
-    /**
-     * Set the list of labels on a reminder spinner.
-     */
-    private static void setTherapyReminderSpinnerLabels(Activity activity, Spinner spinner,
-            ArrayList<String> labels) {
-        Resources res = activity.getResources();
-        spinner.setPrompt(res.getString(R.string.reminders_label));
-        int resource = android.R.layout.simple_spinner_item;
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(activity, resource, labels);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
     }
 
     /**

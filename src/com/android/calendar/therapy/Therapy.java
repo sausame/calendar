@@ -243,11 +243,11 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 	}
 
 	public static Therapy parse(JSONObject object) {
-		Therapy therapy;
+		Therapy therapy = null;
 		try {
 			therapy = new Therapy();
 
-			therapy.setDay(Integer.parseInt(object.getString("day")));
+			therapy.setDay(Long.parseLong(object.getString("day")));
 			therapy.setDescription(object.getString("description"));
 			therapy.setHasAlarm(Integer.parseInt(object.getString("hasAlarm")) != 0);
 			therapy.setName(object.getString("name"));
@@ -263,7 +263,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 				long group[] = new long[num];
 				for (int i = 0; i < num; i++) {
 					JSONObject obj = jsonArray.getJSONObject(i);
-					group[i] = Integer.parseInt(object.getString("time"));
+					group[i] = Long.parseLong(obj.getString("time"));
 				}
 				therapy.setRemindersGroup(group);
 			}
@@ -297,7 +297,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 	public JSONObject toJSONObject() {
 		try {
 			JSONObject object = new JSONObject();
-			object.put("day", this.getDay());
+			object.put("day", Long.toString(this.getDay()));
 			object.put("description", this.getDescription());
 			object.put("hasAlarm", this.getHasAlarm() ? 1 : 0);
 			object.put("name", this.getName());
@@ -311,7 +311,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 				JSONArray objectArray = new JSONArray();
 				for (int i = 0; i < this.getRemindersGroup().length; i++) {
 					JSONObject obj = new JSONObject();
-					obj.put("time", this.getRemindersGroup()[i]);
+					obj.put("time", Long.toString(this.getRemindersGroup()[i]));
 					objectArray.put(obj);
 				}
 
