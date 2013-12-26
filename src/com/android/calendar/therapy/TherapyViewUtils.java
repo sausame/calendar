@@ -16,8 +16,12 @@
 package com.android.calendar.therapy;
 
 import java.util.ArrayList;
+import java.util.TimeZone;
 
 import android.app.Activity;
+import android.text.format.DateFormat;
+import android.text.format.DateUtils;
+import android.text.format.Time;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -32,7 +36,66 @@ public class TherapyViewUtils {
 
     private TherapyViewUtils() {
     }
+    
+    public static long getTime(Time tm,	int hourOfDay, int minute) {
+		// Cache the member variables locally to avoid inner class overhead.
+		tm.hour = hourOfDay;
+		tm.minute = minute;
 
+		// Cache the millis so that we limit the number of calls to
+		// normalize() and toMillis(), which are fairly expensive.
+		long millis = tm.normalize(true);
+		return millis;
+    }
+    
+	public static void setTime(Activity activity, TextView view, Time tm,
+			int hourOfDay, int minute) {
+		setTime(activity, view, getTime(tm, hourOfDay, minute));
+	}
+    
+    public static void setTime(Activity activity, TextView view, long millis) {
+        int flags = DateUtils.FORMAT_SHOW_TIME;
+        flags |= DateUtils.FORMAT_CAP_NOON_MIDNIGHT;
+        if (DateFormat.is24HourFormat(activity)) {
+            flags |= DateUtils.FORMAT_24HOUR;
+        }
+
+        // Unfortunately, DateUtils doesn't support a timezone other than the
+        // default timezone provided by the system, so we have this ugly hack
+        // here to trick it into formatting our time correctly. In order to
+        // prevent all sorts of craziness, we synchronize on the TimeZone class
+        // to prevent other threads from reading an incorrect timezone from
+        // calls to TimeZone#getDefault()
+        // TODO fix this if/when DateUtils allows for passing in a timezone
+        String timeString;
+        synchronized (TimeZone.class) {
+            timeString = DateUtils.formatDateTime(activity, millis, flags);
+            TimeZone.setDefault(null);
+        }
+        
+        view.setTag(millis);
+        view.setText(timeString);
+    }
+
+    /**
+     * Sort reminder.
+     *
+     * @param reminderItems UI elements (layouts with spinners) that hold array indices.
+     */
+	public static void sortReminderItems(Activity activity,
+			ArrayList<LinearLayout> reminderItems) {
+		int len = reminderItems.size();
+
+		for (int index = 0; index < len; index++) {
+			LinearLayout layout = reminderItems.get(index);
+			TextView labelTextView = (TextView) layout
+					.findViewById(R.id.reminder_number_label);
+			labelTextView.setText(activity.getString(
+					R.string.reminder_number_label, index + 1));
+		}
+
+	}
+    
     /**
      * Extracts reminder minutes info from UI elements.
      *
@@ -65,9 +128,8 @@ public class TherapyViewUtils {
      */
     public static boolean addTherapyReminder(Activity activity, View view,
 				View.OnClickListener removeListener,
-            ArrayList<LinearLayout> items, ArrayList<Integer> values,
-            ArrayList<String> labels, int number,
-			int maxTherapyReminders, View.OnClickListener setTimeListener) {
+            ArrayList<LinearLayout> items,
+			int maxTherapyReminders, View.OnClickListener setTimeListener, long millis) {
 
         if (items.size() >= maxTherapyReminders) {
             return false;
@@ -83,17 +145,26 @@ public class TherapyViewUtils {
         reminderRemoveButton = (ImageButton) reminderItem.findViewById(R.id.reminder_remove);
         reminderRemoveButton.setOnClickListener(removeListener);
 
-		TextView labelTextView = (TextView) reminderItem.findViewById(R.id.reminder_number_label);
-		labelTextView.setText(activity.getString(R.string.reminder_number_label, number));
-
 		Button setTimeButton;
         setTimeButton = (Button) reminderItem.findViewById(R.id.therapy_reminder_time);
         setTimeButton.setOnClickListener(setTimeListener);
+        setTime(activity, setTimeButton, millis);
 
         items.add(reminderItem);
+        
+        sortReminderItems(activity, items);
 
         return true;
     }
+    
+	public static boolean addTherapyReminder(Activity activity, View view,
+			View.OnClickListener removeListener, ArrayList<LinearLayout> items,
+			int maxTherapyReminders, View.OnClickListener setTimeListener,
+			int hourOfDay, int minute) {
+		return addTherapyReminder(activity, view, removeListener, items,
+				maxTherapyReminders, setTimeListener,
+				getTime(new Time(), hourOfDay, minute));
+	}
 
     /**
      * Enables/disables the 'add reminder' button depending on the current number of

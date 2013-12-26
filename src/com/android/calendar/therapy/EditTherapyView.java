@@ -148,16 +148,8 @@ public class EditTherapyView implements View.OnClickListener,
 
 		@Override
 		public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
-            // Cache the member variables locally to avoid inner class overhead.
-            Time tm = mTime;
-
-			tm.hour = hourOfDay;
-			tm.minute = minute;
-
-            // Cache the millis so that we limit the number of calls to 
-			// normalize() and toMillis(), which are fairly expensive.
-            long millis = tm.normalize(true);
-            setTime((Button) mView, millis);				
+			TherapyViewUtils.setTime(mActivity, (Button) mView, mTime,
+					hourOfDay, minute);
 		}
     }
 
@@ -699,23 +691,13 @@ public class EditTherapyView implements View.OnClickListener,
 	 * the default reminder time and method.
 	 */
 	private void addReminder() {
-		// TODO: when adding a new reminder, make it different from the
-		// last one in the list (if any).
-		if (mDefaultBodyStatusMinutes == GeneralPreferences.NO_REMINDER) {
-			TherapyViewUtils.addTherapyReminder(mActivity, mScrollView, this,
-					mReminderItems, mReminderTypeValues,
-					mReminderTypeLabels, 
-					1,
-					Integer.MAX_VALUE, new TimeClickListener(new Time()));
-		} else {
-			TherapyViewUtils.addTherapyReminder(mActivity, mScrollView, this,
-					mReminderItems, mReminderTypeValues,
-					mReminderTypeLabels, 					
-					1,
-					Integer.MAX_VALUE, new TimeClickListener(new Time()));
-		}
+		TherapyViewUtils.addTherapyReminder(mActivity, mScrollView, this,
+				mReminderItems,	Integer.MAX_VALUE,
+				new TimeClickListener(new Time()), 8, 0);
+
 		updateBodyStatussVisibility(mReminderItems.size());
-		TherapyViewUtils.updateAddTherapyReminderButton(mView, mReminderItems, Integer.MAX_VALUE);
+		TherapyViewUtils.updateAddTherapyReminderButton(mView, mReminderItems,
+				Integer.MAX_VALUE);
 	}
 
 	private void setDate(TextView view, long millis) {
@@ -738,30 +720,6 @@ public class EditTherapyView implements View.OnClickListener,
 		}
 		view.setText(dateString);
 	}
-
-    private void setTime(TextView view, long millis) {
-        int flags = DateUtils.FORMAT_SHOW_TIME;
-        flags |= DateUtils.FORMAT_CAP_NOON_MIDNIGHT;
-        if (DateFormat.is24HourFormat(mActivity)) {
-            flags |= DateUtils.FORMAT_24HOUR;
-        }
-
-        // Unfortunately, DateUtils doesn't support a timezone other than the
-        // default timezone provided by the system, so we have this ugly hack
-        // here to trick it into formatting our time correctly. In order to
-        // prevent all sorts of craziness, we synchronize on the TimeZone class
-        // to prevent other threads from reading an incorrect timezone from
-        // calls to TimeZone#getDefault()
-        // TODO fix this if/when DateUtils allows for passing in a timezone
-        String timeString;
-        synchronized (TimeZone.class) {
-            timeString = DateUtils.formatDateTime(mActivity, millis, flags);
-            TimeZone.setDefault(null);
-        }
-        
-        view.setTag(millis);
-        view.setText(timeString);
-    }
 
 	@Override
 	public void onItemSelected(AdapterView<?> parent, View view, int position,
