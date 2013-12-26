@@ -483,6 +483,8 @@ public class CalendarDatabase {
 		
 		manager.setPathname(context.getResources().getString(
 				R.string.therapy_filename));
+		manager.load();
+		
 		if (originalTherapy != null) {
 			return manager.modify(originalTherapy, therapy);
 		}

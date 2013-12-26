@@ -413,7 +413,7 @@ public class EditTherapyView implements View.OnClickListener,
 		mTherapy.setName(mTitleTextView.getText().toString());
 		mTherapy.setDescription(mDescriptionTextView.getText().toString());
 
-		mTherapy.setUsageRule(mRrule);
+		mTherapy.setUsageRule(mRrule != null ? mRrule : "");
 		mTherapy.setNumberInEveryTime(Integer.parseInt(mNumberInEveryTimeTextView.getText().toString()));
 		mTherapy.setUsageTypeInEveryTime(mUsageTypeInEveryTimeSpinner.getSelectedItemPosition());
 

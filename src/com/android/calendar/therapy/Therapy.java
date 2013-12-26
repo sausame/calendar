@@ -88,7 +88,17 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 	 */
 	@Override
 	public int compareTo(Therapy re) {
-		return (int) (re.getDay() - this.mDay);
+		int diff;
+		
+		if ((diff = (int) (re.getDay() - this.mDay)) != 0) {
+			return diff;
+		}
+
+		if ((diff = re.getType() - this.mType) != 0) {
+			return diff;
+		}
+		
+		return this.mName.compareTo(re.getName());
 	}
 
 	public int compareTo(long milliseconds) {
@@ -258,7 +268,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 				therapy.setRemindersGroup(group);
 			}
 		} catch (Exception e) {
-//			e.printStackTrace();
+			e.printStackTrace();
 			return null;
 		}
 		
@@ -289,10 +299,10 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 			JSONObject object = new JSONObject();
 			object.put("day", this.getDay());
 			object.put("description", this.getDescription());
-			object.put("hasAlarm", this.getHasAlarm());
+			object.put("hasAlarm", this.getHasAlarm() ? 1 : 0);
 			object.put("name", this.getName());
 			object.put("numberInEveryTime", this.getNumberInEveryTime());
-			object.put("privacy", this.getPrivacy());
+			object.put("privacy", this.getPrivacy() ? 1 : 0);
 			object.put("type", this.getType());
 			object.put("usageRule", this.getUsageRule());
 			object.put("usageTypeInEveryTime", this.getUsageTypeInEveryTime());
@@ -307,6 +317,8 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 
 				object.put("reminder", objectArray);
 			}
+			Log.v(this.toString());
+			Log.v(object.toString(2));
 			return object;
 		} catch (JSONException e) {
 			e.printStackTrace();
