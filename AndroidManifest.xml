@@ -98,6 +98,14 @@
             android:theme="@style/CalendarTheme.WithActionBar">
         </activity>
 
+        <activity android:name=".infor.EditPersonalDailyStatusActivity"
+            android:theme="@style/CalendarTheme.WithActionBar">
+        </activity>
+
+        <activity android:name=".therapy.EditTherapyActivity"
+            android:theme="@style/CalendarTheme.WithActionBar">
+        </activity>
+
         <activity-alias android:name="EditEventActivity"
             android:targetActivity=".event.EditEventActivity"
             android:exported="true">

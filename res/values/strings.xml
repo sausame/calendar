@@ -749,6 +749,11 @@
     
     <!-- EditDailyStatusActivity specific strings: -->
     <skip/>
+
+    <!-- This is a label on a menu item. Pressing this menu item allows the
+         user to create a new daily status. -->
+    <string name="personal_status_create">"New personal daily status"</string>
+
     <!-- DailyStatuss have a start date/time and an end date/time. The display shows
          the start and end times like 'From start date To end date'. This is the
          label before the 'end date'. -->
@@ -831,4 +836,8 @@
     <!-- Pick a usage of a therapy [CHAR LIMIT = NONE]-->
     <string name="accessibility_pick_usage">Pick usage</string>
 
+    <!-- This is a label on a menu item. Pressing this menu item allows the
+         user to create a new therapy. -->
+    <string name="therapy_create">"New therapy"</string>
+ 
 </resources>

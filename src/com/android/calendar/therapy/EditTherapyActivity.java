@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.calendar.event;
+package com.android.calendar.therapy;
 
 import static android.provider.CalendarContract.EXTRA_EVENT_ALL_DAY;
 import static android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME;
@@ -36,11 +36,12 @@ import com.android.calendar.CalendarEventModel.ReminderEntry;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
+import com.android.calendar.therapy.EditTherapyFragment;
 
 import java.util.ArrayList;
 
-public class EditEventActivity extends AbstractCalendarActivity {
-    private static final String TAG = "EditEventActivity";
+public class EditTherapyActivity extends AbstractCalendarActivity {
+    private static final String TAG = "EditTherapyActivity";
 
     private static final boolean DEBUG = true;
 
@@ -52,7 +53,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
 
     private static boolean mIsMultipane;
 
-    private EditEventFragment mEditFragment;
+    private EditTherapyFragment mEditFragment;
 
     private ArrayList<ReminderEntry> mReminders;
 
@@ -73,7 +74,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
         mEventColor = getIntent().getIntExtra(EXTRA_EVENT_COLOR, -1);
 
 
-        mEditFragment = (EditEventFragment) getFragmentManager().findFragmentById(R.id.main_frame);
+        mEditFragment = (EditTherapyFragment) getFragmentManager().findFragmentById(R.id.main_frame);
 
         mIsMultipane = Utils.getConfigBool(this, R.bool.multiple_pane_config);
 
@@ -97,8 +98,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
                 intent = getIntent();
             }
 
-            mEditFragment = new EditEventFragment(mEventInfo, mReminders, mEventColorInitialized,
-                    mEventColor, false, intent);
+            mEditFragment = new EditTherapyFragment(mEventInfo, false, intent);
 
             mEditFragment.mShowModifyDialogOnLaunch = getIntent().getBooleanExtra(
                     CalendarController.EVENT_EDIT_ON_LAUNCH, false);

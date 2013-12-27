@@ -774,6 +774,31 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
             mController.sendEventRelatedEvent(
                     this, EventType.CREATE_EVENT, -1, t.toMillis(true), 0, 0, 0, -1);
             return true;
+        } else if (itemId == R.id.action_create_personal_status) {
+            t = new Time();
+            t.set(mController.getTime());
+            if (t.minute > 30) {
+                t.hour++;
+                t.minute = 0;
+            } else if (t.minute > 0 && t.minute < 30) {
+                t.minute = 30;
+            }
+            mController.sendEventRelatedEvent(
+                    this, EventType.CREATE_PERSONAL_DAILY_STATUS,
+					-1, t.toMillis(true), 0, 0, 0, -1);
+            return true;
+        } else if (itemId == R.id.action_create_therapy) {
+            t = new Time();
+            t.set(mController.getTime());
+            if (t.minute > 30) {
+                t.hour++;
+                t.minute = 0;
+            } else if (t.minute > 0 && t.minute < 30) {
+                t.minute = 30;
+            }
+            mController.sendEventRelatedEvent(
+                    this, EventType.CREATE_THERAPY, -1, t.toMillis(true), 0, 0, 0, -1);
+            return true;
         } else if (itemId == R.id.action_select_visible_calendars) {
             mController.sendEvent(this, EventType.LAUNCH_SELECT_VISIBLE_CALENDARS, null, null,
                     0, 0);

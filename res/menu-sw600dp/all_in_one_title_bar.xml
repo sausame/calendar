@@ -28,6 +28,21 @@
         android:showAsAction="ifRoom"
         android:title="@string/event_create"
         android:icon="@drawable/ic_menu_add_event_holo_light" />
+
+    <item
+        android:id="@+id/action_create_personal_status"
+        android:alphabeticShortcut="n"
+        android:showAsAction="ifRoom"
+        android:title="@string/personal_status_create"
+        android:icon="@drawable/ic_menu_add_event_holo_light" />
+
+    <item
+        android:id="@+id/action_create_therapy"
+        android:alphabeticShortcut="n"
+        android:showAsAction="ifRoom"
+        android:title="@string/therapy_create"
+        android:icon="@drawable/ic_menu_add_event_holo_light" />
+
     <item
         android:id="@+id/action_refresh"
         android:alphabeticShortcut="r"

@@ -40,7 +40,9 @@ import android.text.format.Time;
 import android.util.Pair;
 
 import com.android.calendar.event.EditEventActivity;
+import com.android.calendar.infor.EditPersonalDailyStatusActivity;
 import com.android.calendar.selectcalendars.SelectVisibleCalendarsActivity;
+import com.android.calendar.therapy.EditTherapyActivity;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
@@ -50,7 +52,7 @@ import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
 public class CalendarController {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final String TAG = "CalendarController";
 
     public static final String EVENT_EDIT_ON_LAUNCH = "editMode";
@@ -126,6 +128,11 @@ public class CalendarController {
 
         // select which calendars to display
         final long LAUNCH_SELECT_VISIBLE_CALENDARS = 1L << 11;
+
+		// XXX
+        final long CREATE_PERSONAL_DAILY_STATUS = 1L << 12;
+
+        final long CREATE_THERAPY = 1L << 13;
     }
 
     /**
@@ -616,6 +623,14 @@ public class CalendarController {
             } else if (event.eventType == EventType.SEARCH) {
                 launchSearch(event.id, event.query, event.componentName);
                 return;
+			} else if (event.eventType == EventType.CREATE_PERSONAL_DAILY_STATUS) {
+                launchCreatePersonalDailyStatus(event.startTime.toMillis(false),
+							event.eventTitle, event.calendarId);
+                return;
+			} else if (event.eventType == EventType.CREATE_THERAPY) {
+                launchCreateTherapy(event.startTime.toMillis(false), event.eventTitle,
+                        event.calendarId);
+                return;
             }
         }
     }
@@ -752,6 +767,40 @@ public class CalendarController {
         return intent;
     }
 
+    private void launchCreatePersonalDailyStatus(long whenMillis, String title, long calendarId) {
+        Intent intent = generateCreatePersonalDailyStatusIntent(whenMillis, title,
+            calendarId);
+        mEventId = -1;
+        mContext.startActivity(intent);
+    }
+
+    public Intent generateCreatePersonalDailyStatusIntent(long whenMillis,
+        String title, long calendarId) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setClass(mContext, EditPersonalDailyStatusActivity.class);
+        intent.putExtra(EXTRA_EVENT_BEGIN_TIME, whenMillis);
+        intent.putExtra(Events.CALENDAR_ID, calendarId);
+        intent.putExtra(Events.TITLE, title);
+        return intent;
+    }
+
+    private void launchCreateTherapy(long whenMillis, String title, long calendarId) {
+        Intent intent = generateCreateTherapyIntent(whenMillis, title,
+            calendarId);
+        mEventId = -1;
+        mContext.startActivity(intent);
+    }
+
+    public Intent generateCreateTherapyIntent(long whenMillis,
+        String title, long calendarId) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setClass(mContext, EditTherapyActivity.class);
+        intent.putExtra(EXTRA_EVENT_BEGIN_TIME, whenMillis);
+        intent.putExtra(Events.CALENDAR_ID, calendarId);
+        intent.putExtra(Events.TITLE, title);
+        return intent;
+    }
+
     public void launchViewEvent(long eventId, long startMillis, long endMillis, int response) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
         Uri eventUri = ContentUris.withAppendedId(Events.CONTENT_URI, eventId);
@@ -860,7 +909,12 @@ public class CalendarController {
             tmp = "Gone home";
         } else if ((eventInfo.eventType & EventType.UPDATE_TITLE) != 0) {
             tmp = "Update title";
+        } else if ((eventInfo.eventType & EventType.CREATE_PERSONAL_DAILY_STATUS) != 0) {
+            tmp = "New personal daily status";
+        } else if ((eventInfo.eventType & EventType.CREATE_THERAPY) != 0) {
+            tmp = "New therapy";
         }
+
         builder.append(tmp);
         builder.append(": id=");
         builder.append(eventInfo.id);

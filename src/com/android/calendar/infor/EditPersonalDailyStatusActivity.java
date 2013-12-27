@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.calendar.event;
+package com.android.calendar.infor;
 
 import static android.provider.CalendarContract.EXTRA_EVENT_ALL_DAY;
 import static android.provider.CalendarContract.EXTRA_EVENT_BEGIN_TIME;
@@ -39,8 +39,8 @@ import com.android.calendar.Utils;
 
 import java.util.ArrayList;
 
-public class EditEventActivity extends AbstractCalendarActivity {
-    private static final String TAG = "EditEventActivity";
+public class EditPersonalDailyStatusActivity extends AbstractCalendarActivity {
+    private static final String TAG = "EditPersonalDailyStatusActivity";
 
     private static final boolean DEBUG = true;
 
@@ -52,7 +52,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
 
     private static boolean mIsMultipane;
 
-    private EditEventFragment mEditFragment;
+    private EditDailyStatusFragment mEditFragment;
 
     private ArrayList<ReminderEntry> mReminders;
 
@@ -72,8 +72,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
         mEventColorInitialized = getIntent().hasExtra(EXTRA_EVENT_COLOR);
         mEventColor = getIntent().getIntExtra(EXTRA_EVENT_COLOR, -1);
 
-
-        mEditFragment = (EditEventFragment) getFragmentManager().findFragmentById(R.id.main_frame);
+        mEditFragment = (EditDailyStatusFragment) getFragmentManager().findFragmentById(R.id.main_frame);
 
         mIsMultipane = Utils.getConfigBool(this, R.bool.multiple_pane_config);
 
@@ -97,7 +96,7 @@ public class EditEventActivity extends AbstractCalendarActivity {
                 intent = getIntent();
             }
 
-            mEditFragment = new EditEventFragment(mEventInfo, mReminders, mEventColorInitialized,
+            mEditFragment = new EditDailyStatusFragment(mEventInfo, mReminders, mEventColorInitialized,
                     mEventColor, false, intent);
 
             mEditFragment.mShowModifyDialogOnLaunch = getIntent().getBooleanExtra(
