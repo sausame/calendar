@@ -57,15 +57,14 @@ import com.android.calendar.CalendarController;
 import com.android.calendar.CalendarController.EventHandler;
 import com.android.calendar.CalendarController.EventInfo;
 import com.android.calendar.CalendarController.EventType;
-import com.android.calendar.CalendarEventModel;
-import com.android.calendar.CalendarEventModel.Attendee;
-import com.android.calendar.CalendarEventModel.ReminderEntry;
+import com.android.calendar.CalendarDatabase;
 import com.android.calendar.DeleteEventHelper;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EventColorCache;
 import com.android.calendar.event.EventColorPickerDialog;
+import com.android.calendar.therapy.Therapy;
 import com.android.colorpicker.ColorPickerSwatch.OnColorSelectedListener;
 import com.android.colorpicker.HsvColorComparator;
 
@@ -74,7 +73,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 @SuppressLint("ValidFragment")
-public class EditDailyStatusFragment extends Fragment implements EventHandler, OnColorSelectedListener {
+public class EditDailyStatusFragment extends Fragment implements EventHandler {
     private static final String TAG = "EditEventActivity";
     private static final String COLOR_PICKER_DIALOG_TAG = "ColorPickerDialog";
 
@@ -109,9 +108,9 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
     private int mOutstandingQueries = TOKEN_UNITIALIZED;
 
     EditDailyStatusHelper mHelper;
-    CalendarEventModel mModel;
-    CalendarEventModel mOriginalModel;
-    CalendarEventModel mRestoreModel;
+    DailyStatus mDailyStatus;
+    DailyStatus mOriginalDailyStatus;
+    DailyStatus mRestoreModel;
     EditDailyStatusView mView;
     QueryHandler mHandler;
 
@@ -120,7 +119,6 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
 
     private final EventInfo mEvent;
     private EventBundle mEventBundle;
-    private ArrayList<ReminderEntry> mReminders;
     private int mEventColor;
     private boolean mEventColorInitialized = false;
     private Uri mUri;
@@ -187,25 +185,14 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
                         mOnDone.run();
                         return;
                     }
-                    mOriginalModel = new CalendarEventModel();
-                    EditDailyStatusHelper.setModelFromCursor(mOriginalModel, cursor);
-                    EditDailyStatusHelper.setModelFromCursor(mModel, cursor);
+
+                    mOriginalDailyStatus = DailyStatus.parseDailyStatus(cursor);
+                    mDailyStatus = DailyStatus.parseDailyStatus(cursor);
                     cursor.close();
 
-                    mOriginalModel.mUri = mUri.toString();
+                    eventId = mDailyStatus.getId();
 
-                    mModel.mUri = mUri.toString();
-                    mModel.mOriginalStart = mBegin;
-                    mModel.mOriginalEnd = mEnd;
-                    mModel.mIsFirstEventInSeries = mBegin == mOriginalModel.mStart;
-                    mModel.mStart = mBegin;
-                    mModel.mEnd = mEnd;
-                    if (mEventColorInitialized) {
-                        mModel.setEventColor(mEventColor);
-                    }
-                    eventId = mModel.mId;
-
-                    setModelIfDone(TOKEN_EVENT);
+                    setDailyStatusIfDone(TOKEN_EVENT);
                     break;
                 default:
                     cursor.close();
@@ -214,150 +201,61 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
         }
     }
 
-    private View.OnClickListener mOnColorPickerClicked = new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            int[] colors = mModel.getCalendarEventColors();
-            if (mColorPickerDialog == null) {
-                mColorPickerDialog = EventColorPickerDialog.newInstance(colors,
-                        mModel.getEventColor(), mModel.getCalendarColor(), mView.mIsMultipane);
-                mColorPickerDialog.setOnColorSelectedListener(EditDailyStatusFragment.this);
-            } else {
-                mColorPickerDialog.setCalendarColor(mModel.getCalendarColor());
-                mColorPickerDialog.setColors(colors, mModel.getEventColor());
-            }
-            final FragmentManager fragmentManager = getFragmentManager();
-            fragmentManager.executePendingTransactions();
-            if (!mColorPickerDialog.isAdded()) {
-                mColorPickerDialog.show(fragmentManager, COLOR_PICKER_DIALOG_TAG);
-            }
-        }
-    };
-
-    private void setModelIfDone(int queryType) {
+    private void setDailyStatusIfDone(int queryType) {
         synchronized (this) {
             mOutstandingQueries &= ~queryType;
             if (mOutstandingQueries == 0) {
                 if (mRestoreModel != null) {
-                    mModel = mRestoreModel;
+                    mDailyStatus = mRestoreModel;
                 }
                 if (mShowModifyDialogOnLaunch && mModification == Utils.MODIFY_UNINITIALIZED) {
-                    if (!TextUtils.isEmpty(mModel.mRrule)) {
-                        displayEditWhichDialog();
-                    } else {
-                        mModification = Utils.MODIFY_ALL;
-                    }
-
+                    mModification = Utils.MODIFY_ALL;
                 }
-                mView.setModel(mModel);
+                mView.setDailyStatus(mDailyStatus);
                 mView.setModification(mModification);
             }
         }
     }
 
     public EditDailyStatusFragment() {
-        this(null, null, false, -1, false, null);
+        this(null, false, null);
     }
 
-    public EditDailyStatusFragment(EventInfo event, ArrayList<ReminderEntry> reminders,
-            boolean eventColorInitialized, int eventColor, boolean readOnly, Intent intent) {
+    public EditDailyStatusFragment(EventInfo event, boolean readOnly, Intent intent) {
         mEvent = event;
         mIsReadOnly = readOnly;
         mIntent = intent;
 
-        mReminders = reminders;
-        mEventColorInitialized = eventColorInitialized;
-        if (eventColorInitialized) {
-            mEventColor = eventColor;
-        }
         setHasOptionsMenu(true);
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        mColorPickerDialog = (EventColorPickerDialog) getActivity().getFragmentManager()
-                .findFragmentByTag(COLOR_PICKER_DIALOG_TAG);
-        if (mColorPickerDialog != null) {
-            mColorPickerDialog.setOnColorSelectedListener(this);
-        }
     }
 
     private void startQuery() {
         mUri = null;
         mBegin = -1;
-        mEnd = -1;
-        if (mEvent != null) {
-            if (mEvent.id != -1) {
-                mModel.mId = mEvent.id;
-                mUri = ContentUris.withAppendedId(Events.CONTENT_URI, mEvent.id);
-            } else {
-                // New event. All day?
-                mModel.mAllDay = mEvent.extraLong == CalendarController.EXTRA_CREATE_ALL_DAY;
-            }
-            if (mEvent.startTime != null) {
-                mBegin = mEvent.startTime.toMillis(true);
-            }
-            if (mEvent.endTime != null) {
-                mEnd = mEvent.endTime.toMillis(true);
-            }
-            if (mEvent.calendarId != -1) {
-                mCalendarId = mEvent.calendarId;
-            }
-        } else if (mEventBundle != null) {
-            if (mEventBundle.id != -1) {
-                mModel.mId = mEventBundle.id;
-                mUri = ContentUris.withAppendedId(Events.CONTENT_URI, mEventBundle.id);
-            }
-            mBegin = mEventBundle.start;
-            mEnd = mEventBundle.end;
-        }
-
-        if (mReminders != null) {
-            mModel.mReminders = mReminders;
-        }
-
-        if (mEventColorInitialized) {
-            mModel.setEventColor(mEventColor);
-        }
 
         if (mBegin <= 0) {
             // use a default value instead
             mBegin = mHelper.constructDefaultStartTime(System.currentTimeMillis());
         }
-        if (mEnd < mBegin) {
-            // use a default value instead
-            mEnd = mHelper.constructDefaultEndTime(mBegin);
-        }
 
         // Kick off the query for the event
         boolean newEvent = mUri == null;
         if (!newEvent) {
-            mModel.mCalendarAccessLevel = Calendars.CAL_ACCESS_NONE;
             mOutstandingQueries = TOKEN_EVENT;
             if (DEBUG) {
                 Log.d(TAG, "startQuery: uri for daily status is " + mUri.toString());
             }
-            mHandler.startQuery(TOKEN_EVENT, null, mUri, EditDailyStatusHelper.EVENT_PROJECTION,
-                    null /* selection */, null /* selection args */, null /* sort order */);
         } else {
             mOutstandingQueries = TOKEN_EVENT;
             if (DEBUG) {
                 Log.d(TAG, "startQuery: Editing a new daily status.");
             }
-            mModel.mOriginalStart = mBegin;
-            mModel.mOriginalEnd = mEnd;
-            mModel.mStart = mBegin;
-            mModel.mEnd = mEnd;
-            mModel.mCalendarId = mCalendarId;
-            mModel.mSelfAttendeeStatus = Attendees.ATTENDEE_STATUS_ACCEPTED;
 
             mModification = Utils.MODIFY_ALL;
             mView.setModification(mModification);
         }
         
-        setModelIfDone(TOKEN_EVENT);
+        setDailyStatusIfDone(TOKEN_EVENT);
     }
 
     @Override
@@ -367,7 +265,12 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
 
         mHelper = new EditDailyStatusHelper(activity, null);
         mHandler = new QueryHandler(activity.getContentResolver());
-        mModel = new CalendarEventModel(activity, mIntent);
+        mDailyStatus = DailyStatus.from(mIntent);
+        if (mDailyStatus == null) {
+        	mDailyStatus = new DailyStatus();
+        	mDailyStatus.setId(-1);        	
+        }
+        
         mInputMethodManager = (InputMethodManager)
                 activity.getSystemService(Context.INPUT_METHOD_SERVICE);
 
@@ -416,7 +319,7 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
         super.onCreate(savedInstanceState);
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(BUNDLE_KEY_MODEL)) {
-                mRestoreModel = (CalendarEventModel) savedInstanceState.getSerializable(
+                mRestoreModel = (DailyStatus) savedInstanceState.getSerializable(
                         BUNDLE_KEY_MODEL);
             }
             if (savedInstanceState.containsKey(BUNDLE_KEY_EDIT_STATE)) {
@@ -472,26 +375,16 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
      */
     private boolean onActionBarItemSelected(int itemId) {
         if (itemId == R.id.action_done) {
-            if (EditDailyStatusHelper.canModifyEvent(mModel) || EditDailyStatusHelper.canRespond(mModel)) {
-                if (mView != null && mView.prepareForSave()) {
-                    if (mModification == Utils.MODIFY_UNINITIALIZED) {
-                        mModification = Utils.MODIFY_ALL;
-                    }
-                    mOnDone.setDoneCode(Utils.DONE_SAVE | Utils.DONE_EXIT);
-                    mOnDone.run();
-                } else {
-                    mOnDone.setDoneCode(Utils.DONE_REVERT);
-                    mOnDone.run();
-                }
-            } else if (EditDailyStatusHelper.canAddReminders(mModel) && mModel.mId != -1
-                    && mOriginalModel != null && mView.prepareForSave()) {
-                saveReminders();
-                mOnDone.setDoneCode(Utils.DONE_EXIT);
-                mOnDone.run();
-            } else {
-                mOnDone.setDoneCode(Utils.DONE_REVERT);
-                mOnDone.run();
-            }
+			if (mView != null && mView.prepareForSave()) {
+				if (mModification == Utils.MODIFY_UNINITIALIZED) {
+					mModification = Utils.MODIFY_ALL;
+				}
+				mOnDone.setDoneCode(Utils.DONE_SAVE | Utils.DONE_EXIT);
+				mOnDone.run();
+			} else {
+				mOnDone.setDoneCode(Utils.DONE_REVERT);
+				mOnDone.run();
+			}
         } else if (itemId == R.id.action_cancel) {
             mOnDone.setDoneCode(Utils.DONE_REVERT);
             mOnDone.run();
@@ -499,61 +392,16 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
         return true;
     }
 
-    private void saveReminders() {
-        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>(3);
-        boolean changed = EditDailyStatusHelper.saveReminders(ops, mModel.mId, mModel.mReminders,
-                mOriginalModel.mReminders, false /* no force save */);
-
-        if (!changed) {
-            return;
-        }
-
-        AsyncQueryService service = new AsyncQueryService(getActivity());
-        service.startBatch(0, null, Calendars.CONTENT_URI.getAuthority(), ops, 0);
-        // Update the "hasAlarm" field for the event
-        Uri uri = ContentUris.withAppendedId(Events.CONTENT_URI, mModel.mId);
-        int len = mModel.mReminders.size();
-        boolean hasAlarm = len > 0;
-        if (hasAlarm != mOriginalModel.mHasAlarm) {
-            ContentValues values = new ContentValues();
-            values.put(Events.HAS_ALARM, hasAlarm ? 1 : 0);
-            service.startUpdate(0, null, uri, values, null, null, 0);
-        }
-
-        Toast.makeText(mActivity, R.string.saving_event, Toast.LENGTH_SHORT).show();
-    }
-
     protected void displayEditWhichDialog() {
         if (mModification == Utils.MODIFY_UNINITIALIZED) {
-            final boolean notSynced = TextUtils.isEmpty(mModel.mSyncId);
-            boolean isFirstEventInSeries = mModel.mIsFirstEventInSeries;
+
             int itemIndex = 0;
             CharSequence[] items;
 
-            if (notSynced) {
-                // If this event has not been synced, then don't allow deleting
-                // or changing a single instance.
-                if (isFirstEventInSeries) {
-                    // Still display the option so the user knows all events are
-                    // changing
-                    items = new CharSequence[1];
-                } else {
-                    items = new CharSequence[2];
-                }
-            } else {
-                if (isFirstEventInSeries) {
-                    items = new CharSequence[2];
-                } else {
-                    items = new CharSequence[3];
-                }
-                items[itemIndex++] = mActivity.getText(R.string.modify_event);
-            }
+            items = new CharSequence[2];
+  
+            items[itemIndex++] = mActivity.getText(R.string.modify_event);
             items[itemIndex++] = mActivity.getText(R.string.modify_all);
-
-            // Do one more check to make sure this remains at the end of the list
-            if (!isFirstEventInSeries) {
-                items[itemIndex++] = mActivity.getText(R.string.modify_all_following);
-            }
 
             // Display the modification dialog.
             if (mModifyDialog != null) {
@@ -567,15 +415,9 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
                             if (which == 0) {
                                 // Update this if we start allowing exceptions
                                 // to unsynced events in the app
-                                mModification = notSynced ? Utils.MODIFY_ALL
-                                        : Utils.MODIFY_SELECTED;
-                                if (mModification == Utils.MODIFY_SELECTED) {
-                                    mModel.mOriginalSyncId = notSynced ? null : mModel.mSyncId;
-                                    mModel.mOriginalId = mModel.mId;
-                                }
+                                mModification = Utils.MODIFY_ALL;
                             } else if (which == 1) {
-                                mModification = notSynced ? Utils.MODIFY_ALL_FOLLOWING
-                                        : Utils.MODIFY_ALL;
+                                mModification =Utils.MODIFY_ALL_FOLLOWING;
                             } else if (which == 2) {
                                 mModification = Utils.MODIFY_ALL_FOLLOWING;
                             }
@@ -583,7 +425,6 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
                             mView.setModification(mModification);
                         }
                     }).show();
-
             mModifyDialog.setOnCancelListener(new OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface dialog) {
@@ -615,51 +456,23 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
                 mModification = Utils.MODIFY_ALL;
             }
 
-            if ((mCode & Utils.DONE_SAVE) != 0 && mModel != null
-                    && (EditDailyStatusHelper.canRespond(mModel)
-                            || EditDailyStatusHelper.canModifyEvent(mModel))
+            if ((mCode & Utils.DONE_SAVE) != 0 && mDailyStatus != null
+            		&& mDailyStatus != null
                     && mView.prepareForSave()
-                    && !isEmptyNewEvent()
-                    && mModel.normalizeReminders()
-                    && mHelper.saveEvent(mModel, mOriginalModel, mModification)) {
+                    && !isEmptyNewDailyStatus()
+                    && CalendarDatabase.saveDailyStatus(mActivity, mDailyStatus,
+							mOriginalDailyStatus, mModification)) {
                 int stringResource;
-                if (!mModel.mAttendeesList.isEmpty()) {
-                    if (mModel.mUri != null) {
-                        stringResource = R.string.saving_event_with_guest;
-                    } else {
-                        stringResource = R.string.creating_event_with_guest;
-                    }
-                } else {
-                    if (mModel.mUri != null) {
-                        stringResource = R.string.saving_event;
-                    } else {
-                        stringResource = R.string.creating_event;
-                    }
-                }
-                Toast.makeText(mActivity, stringResource, Toast.LENGTH_SHORT).show();
-            } else if ((mCode & Utils.DONE_SAVE) != 0 && mModel != null && isEmptyNewEvent()) {
-                Toast.makeText(mActivity, R.string.empty_event, Toast.LENGTH_SHORT).show();
-            }
+ 
+				if (mOriginalDailyStatus != null) {
+					stringResource = R.string.saving_event_with_guest;
+				} else {
+					stringResource = R.string.creating_event_with_guest;
+				}
 
-            if ((mCode & Utils.DONE_DELETE) != 0 && mOriginalModel != null
-                    && EditDailyStatusHelper.canModifyCalendar(mOriginalModel)) {
-                long begin = mModel.mStart;
-                long end = mModel.mEnd;
-                int which = -1;
-                switch (mModification) {
-                    case Utils.MODIFY_SELECTED:
-                        which = DeleteEventHelper.DELETE_SELECTED;
-                        break;
-                    case Utils.MODIFY_ALL_FOLLOWING:
-                        which = DeleteEventHelper.DELETE_ALL_FOLLOWING;
-                        break;
-                    case Utils.MODIFY_ALL:
-                        which = DeleteEventHelper.DELETE_ALL;
-                        break;
-                }
-                DeleteEventHelper deleteHelper = new DeleteEventHelper(
-                        mActivity, mActivity, !mIsReadOnly /* exitWhenDone */);
-                deleteHelper.delete(begin, end, mOriginalModel, which);
+                Toast.makeText(mActivity, stringResource, Toast.LENGTH_SHORT).show();
+            } else if ((mCode & Utils.DONE_SAVE) != 0 && mDailyStatus != null && isEmptyNewDailyStatus()) {
+                Toast.makeText(mActivity, R.string.empty_event, Toast.LENGTH_SHORT).show();
             }
 
             if ((mCode & Utils.DONE_EXIT) != 0) {
@@ -667,22 +480,22 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
                 // when we want to return to the main calendar views
                 if ((mCode & Utils.DONE_SAVE) != 0) {
                     if (mActivity != null) {
-                        long start = mModel.mStart;
-                        long end = mModel.mEnd;
-                        if (mModel.mAllDay) {
-                            // For allday events we want to go to the day in the
-                            // user's current tz
-                            String tz = Utils.getTimeZone(mActivity, null);
-                            Time t = new Time(Time.TIMEZONE_UTC);
-                            t.set(start);
-                            t.timezone = tz;
-                            start = t.toMillis(true);
+                        long start = mDailyStatus.getDay();
+                        long end = start;
 
-                            t.timezone = Time.TIMEZONE_UTC;
-                            t.set(end);
-                            t.timezone = tz;
-                            end = t.toMillis(true);
-                        }
+						// For allday events we want to go to the day in the
+						// user's current tz
+						String tz = Utils.getTimeZone(mActivity, null);
+						Time t = new Time(Time.TIMEZONE_UTC);
+						t.set(start);
+						t.timezone = tz;
+						start = t.toMillis(true);
+
+						t.timezone = Time.TIMEZONE_UTC;
+						t.set(end);
+						t.timezone = tz;
+						end = t.toMillis(true);
+
                         CalendarController.getInstance(mActivity).launchViewEvent(-1, start, end,
                                 Attendees.ATTENDEE_STATUS_NONE);
                     }
@@ -703,21 +516,9 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
         }
     }
 
-    boolean isEmptyNewEvent() {
-        if (mOriginalModel != null) {
-            // Not new
-            return false;
-        }
-
-        if (mModel.mOriginalStart != mModel.mStart || mModel.mOriginalEnd != mModel.mEnd) {
-            return false;
-        }
-
-        if (!mModel.mAttendeesList.isEmpty()) {
-            return false;
-        }
-
-        return mModel.isEmpty();
+    boolean isEmptyNewDailyStatus() {
+    	mDailyStatus = mView.getDailyStatus();
+        return mDailyStatus.isEmpty();
     }
 
     @Override
@@ -734,7 +535,7 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
     @Override
     public void onDestroy() {
         if (mView != null) {
-            mView.setModel(null);
+            mView.setDailyStatus(null);
         }
         if (mModifyDialog != null) {
             mModifyDialog.dismiss();
@@ -751,7 +552,7 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
     @Override
     public void onSaveInstanceState(Bundle outState) {
         mView.prepareForSave();
-        outState.putSerializable(BUNDLE_KEY_MODEL, mModel);
+        outState.putSerializable(BUNDLE_KEY_MODEL, mDailyStatus);
         outState.putInt(BUNDLE_KEY_EDIT_STATE, mModification);
         if (mEventBundle == null && mEvent != null) {
             mEventBundle = new EventBundle();
@@ -797,10 +598,4 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler, O
         long end = -1;
     }
 
-    @Override
-    public void onColorSelected(int color) {
-        if (!mModel.isEventColorInitialized() || mModel.getEventColor() != color) {
-            mModel.setEventColor(color);
-        }
-    }
 }

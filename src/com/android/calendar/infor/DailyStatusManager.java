@@ -179,7 +179,7 @@ public class DailyStatusManager {
 //					"Try to get " + mCurrentIndex + " in "
 //							+ mJsonArray.length());
 			JSONObject obj = mJsonArray.getJSONObject(mCurrentIndex++);
-			return DailyStatus.parseDailyStatus(obj);
+			return DailyStatus.parse(obj);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return null;

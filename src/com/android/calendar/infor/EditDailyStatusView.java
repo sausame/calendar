@@ -45,7 +45,6 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.android.calendar.CalendarEventModel;
 import com.android.calendar.EmailAddressAdapter;
 import com.android.calendar.GeneralPreferences;
 import com.android.calendar.Log;
@@ -93,7 +92,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 	private Activity mActivity;
 	private EditDoneRunnable mDone;
 	private View mView;
-	private CalendarEventModel mModel;
+	private DailyStatus mDailyStatus;
 	private Cursor mCalendarsCursor;
 	private AccountSpecifier mAddressAdapter;
 	public boolean mTimeSelectedWasStartTime;
@@ -120,7 +119,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 	private ArrayList<LinearLayout> mBodyStatusItems = new ArrayList<LinearLayout>(
 			0);
 	private ArrayList<BodyStatusEntry> mUnsupportedBodyStatuss = new ArrayList<BodyStatusEntry>();
-	private String mRrule;
+
 
 	private class DateListener implements OnDateSetListener {
 		View mView;
@@ -204,28 +203,28 @@ public class EditDailyStatusView implements View.OnClickListener,
 	 * Does prep steps for saving a calendar event.
 	 * 
 	 * This triggers a parse of the attendees list and checks if the event is
-	 * ready to be saved. An event is ready to be saved so long as a model
+	 * ready to be saved. An event is ready to be saved so long as a dailyStatus
 	 * exists and has a calendar it can be associated with, either because it's
 	 * an existing event or we've finished querying.
 	 * 
-	 * @return false if there is no model or no calendar had been loaded yet,
+	 * @return false if there is no dailyStatus or no calendar had been loaded yet,
 	 *         true otherwise.
 	 */
 	public boolean prepareForSave() {
-		if (mModel == null || (mCalendarsCursor == null && mModel.mUri == null)) {
+		if (mDailyStatus == null) {
 			return false;
 		}
-		return fillModelFromUI();
+		return fillDailyStatusFromUI();
 	}
 
-	public boolean fillModelFromReadOnlyUi() {
-		if (mModel == null || (mCalendarsCursor == null && mModel.mUri == null)) {
+	public boolean fillDailyStatusFromReadOnlyUi() {
+		if (mDailyStatus == null) {
 			return false;
 		}
-/*		mModel.mBodyStatuss = InforViewUtils.reminderItemsToBodyStatuss(
+/*		mDailyStatus.mBodyStatuss = InforViewUtils.reminderItemsToBodyStatuss(
 				mBodyStatusItems, mBodyStatusTypeValues, mBodyStatusTypeDefaultValues);
-		mModel.mBodyStatuss.addAll(mUnsupportedBodyStatuss);
-		mModel.normalizeBodyStatuss();*/
+		mDailyStatus.mBodyStatuss.addAll(mUnsupportedBodyStatuss);
+		mDailyStatus.normalizeBodyStatuss();*/
 		return true;
 	}
 
@@ -241,7 +240,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mBodyStatusItems.remove(reminderItem);
 		updateBodyStatussVisibility(mBodyStatusItems.size());
 /*		InforViewUtils.updateAddBodyStatusButton(mView, mBodyStatusItems,
-				mModel.mCalendarMaxBodyStatuss);*/
+				mDailyStatus.mCalendarMaxBodyStatuss);*/
 	}
 
 	// This is called if the user cancels the "No calendars" dialog.
@@ -274,29 +273,23 @@ public class EditDailyStatusView implements View.OnClickListener,
 		}
 	}
 
-	// Goes through the UI elements and updates the model as necessary
-	private boolean fillModelFromUI() {
-		if (mModel == null) {
+	// Goes through the UI elements and updates the dailyStatus as necessary
+	private boolean fillDailyStatusFromUI() {
+		if (mDailyStatus == null) {
 			return false;
 		}
-/*		mModel.mBodyStatuss = InforViewUtils.reminderItemsToBodyStatuss(
-				mBodyStatusItems, mBodyStatusTypeValues, mBodyStatusTypeDefaultValues);
-		mModel.mBodyStatuss.addAll(mUnsupportedBodyStatuss);
-		mModel.normalizeBodyStatuss();*/
-		mModel.mHasAlarm = mBodyStatusItems.size() > 0;
-		mModel.mTitle = mTitleTextView.getText().toString();
-		mModel.mDescription = mDescriptionTextView.getText().toString();
-		if (TextUtils.isEmpty(mModel.mLocation)) {
-			mModel.mLocation = null;
-		}
-		if (TextUtils.isEmpty(mModel.mDescription)) {
-			mModel.mDescription = null;
+
+		mDailyStatus.name = mTitleTextView.getText().toString();
+		mDailyStatus.mDescription = mDescriptionTextView.getText().toString();
+
+		if (TextUtils.isEmpty(mDailyStatus.mDescription)) {
+			mDailyStatus.mDescription = null;
 		}
 
 		mWhenTime.hour = 0;
 		mWhenTime.minute = 0;
 		mWhenTime.second = 0;
-		mModel.mStart = mWhenTime.normalize(true);
+		mDailyStatus.mDay = mWhenTime.normalize(true);
 
 		return true;
 	}
@@ -357,7 +350,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mWhenTime = new Time();
 
 		// Display loading screen
-		setModel(null);
+		setDailyStatus(null);
 
 		FragmentManager fm = activity.getFragmentManager();
 		mDatePickerDialog = (DatePickerDialog) fm
@@ -411,18 +404,22 @@ public class EditDailyStatusView implements View.OnClickListener,
 		
 		// XXX Add user-defined items.
 	}
+	
+	public DailyStatus getDailyStatus() {
+		return mDailyStatus;
+	}
 
 	/**
-	 * Fill in the view with the contents of the given event model. This allows
+	 * Fill in the view with the contents of the given event dailyStatus. This allows
 	 * an edit view to be initialized before the event has been loaded. Passing
-	 * in null for the model will display a loading screen. A non-null model
-	 * will fill in the view's fields with the data contained in the model.
+	 * in null for the dailyStatus will display a loading screen. A non-null dailyStatus
+	 * will fill in the view's fields with the data contained in the dailyStatus.
 	 * 
-	 * @param model
-	 *            The event model to pull the data from
+	 * @param dailyStatus
+	 *            The event dailyStatus to pull the data from
 	 */
-	public void setModel(CalendarEventModel model) {
-		mModel = model;
+	public void setDailyStatus(DailyStatus dailyStatus) {
+		mDailyStatus = dailyStatus;
 
 		// Need to close the autocomplete adapter to prevent leaking cursors.
 		if (mAddressAdapter != null
@@ -431,28 +428,19 @@ public class EditDailyStatusView implements View.OnClickListener,
 			mAddressAdapter = null;
 		}
 
-		if (model == null) {
+		if (dailyStatus == null) {
 			// Display loading screen
 			mLoadingMessage.setVisibility(View.VISIBLE);
 			mScrollView.setVisibility(View.GONE);
 			return;
 		}
 
-		long begin = model.mStart;
+		long begin = dailyStatus.mDay;
 
 		// Set up the starting times
 		if (begin > 0) {
 			mWhenTime.set(begin);
 			mWhenTime.normalize(true);
-		}
-
-		mRrule = model.mRrule;
-		if (!TextUtils.isEmpty(mRrule)) {
-			mEventRecurrence.parse(mRrule);
-		}
-
-		if (mEventRecurrence.startDate == null) {
-			mEventRecurrence.startDate = mWhenTime;
 		}
 
 		SharedPreferences prefs = GeneralPreferences
@@ -473,12 +461,12 @@ public class EditDailyStatusView implements View.OnClickListener,
 		};
 		bodyStatusAddButton.setOnClickListener(addBodyStatusOnClickListener);
 
-		if (model.mTitle != null) {
-			mTitleTextView.setTextKeepState(model.mTitle);
+		if (dailyStatus.name != null) {
+			mTitleTextView.setTextKeepState(dailyStatus.name);
 		}
 
-		if (model.mDescription != null) {
-			mDescriptionTextView.setTextKeepState(model.mDescription);
+		if (dailyStatus.mDescription != null) {
+			mDescriptionTextView.setTextKeepState(dailyStatus.mDescription);
 		}
 
 		populateWhen();
@@ -490,24 +478,19 @@ public class EditDailyStatusView implements View.OnClickListener,
 	}
 
 	/**
-	 * Updates the view based on {@link #mModification} and {@link #mModel}
+	 * Updates the view based on {@link #mModification} and {@link #mDailyStatus}
 	 */
 	public void updateView() {
-		if (mModel == null) {
+		if (mDailyStatus == null) {
 			return;
 		}
-		if (EditDailyStatusHelper.canModifyEvent(mModel)) {
-			setViewStates(mModification);
-		} else {
-			setViewStates(Utils.MODIFY_UNINITIALIZED);
-		}
+
+		setViewStates(mModification);
 	}
 
 	private void setViewStates(int mode) {
 		// Extra canModify check just in case
-		if (mode == Utils.MODIFY_UNINITIALIZED
-				|| !EditEventHelper.canModifyEvent(mModel)) {
-
+		if (mode == Utils.MODIFY_UNINITIALIZED) {
 			for (View v : mViewOnlyList) {
 				v.setVisibility(View.VISIBLE);
 			}
@@ -621,37 +604,6 @@ public class EditDailyStatusView implements View.OnClickListener,
 		int colorColumn = c.getColumnIndexOrThrow(Calendars.CALENDAR_COLOR);
 		int color = c.getInt(colorColumn);
 		int displayColor = Utils.getDisplayColorFromColor(color);
-
-		// Prevents resetting of data (reminders, etc.) on orientation change.
-		if (calendarId == mModel.mCalendarId
-				&& mModel.isCalendarColorInitialized()
-				&& displayColor == mModel.getCalendarColor()) {
-			return;
-		}
-
-		mModel.mCalendarId = calendarId;
-		mModel.setCalendarColor(displayColor);
-		mModel.mCalendarAccountName = c
-				.getString(EditDailyStatusHelper.CALENDARS_INDEX_ACCOUNT_NAME);
-		mModel.mCalendarAccountType = c
-				.getString(EditDailyStatusHelper.CALENDARS_INDEX_ACCOUNT_TYPE);
-		mModel.setEventColor(mModel.getCalendarColor());
-
-		// Update the max/allowed reminders with the new calendar properties.
-		int maxBodyStatussColumn = c
-				.getColumnIndexOrThrow(Calendars.MAX_REMINDERS);
-
-		int allowedBodyStatussColumn = c
-				.getColumnIndexOrThrow(Calendars.ALLOWED_REMINDERS);
-
-		int allowedAttendeeTypesColumn = c
-				.getColumnIndexOrThrow(Calendars.ALLOWED_ATTENDEE_TYPES);
-		mModel.mCalendarAllowedAttendeeTypes = c
-				.getString(allowedAttendeeTypesColumn);
-		int allowedAvailabilityColumn = c
-				.getColumnIndexOrThrow(Calendars.ALLOWED_AVAILABILITY);
-		mModel.mCalendarAllowedAvailability = c
-				.getString(allowedAvailabilityColumn);
 
 		// Update the UI elements.
 		mBodyStatusItems.clear();

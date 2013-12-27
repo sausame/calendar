@@ -15,11 +15,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.android.calendar.Log;
+import com.android.calendar.therapy.Therapy;
+
+import android.content.Intent;
 import android.database.Cursor;
 import android.text.format.Time;
 
 public class DailyStatus implements Serializable {
 
+	public final static String DAILY_STATUS = "daily_status";
+	
 	private static final String TAG = "DailyStatus";
 	
 	private int mId;
@@ -27,6 +33,9 @@ public class DailyStatus implements Serializable {
 	public Date whichDay;
 	public String name; // Disease name.
 	public int level;
+	
+	public long mDay;
+	public String mDescription;
 
 	public List<DetailInformation> detailList;
 
@@ -273,8 +282,7 @@ public class DailyStatus implements Serializable {
 		}
 	}
 
-	public static DailyStatus parseDailyStatus(
-			JSONObject object) {
+	public static DailyStatus parse(JSONObject object) {
 		DailyStatus info;
 		try {
 			info = new DailyStatus();
@@ -311,14 +319,21 @@ public class DailyStatus implements Serializable {
 	
 	public static DailyStatus parseDailyStatus(
 			Cursor cEvents) {
+		return parse(cEvents.getString(0));
+	}
+	
+	public static DailyStatus parse(String jsonBuf) {
+		if (jsonBuf == null || jsonBuf.isEmpty()) {
+			Log.v("Empty string: " + jsonBuf);
+			return null;
+		}
+		
 		try {
-			String jsonBuf = cEvents.getString(0);
 			JSONObject object = new JSONObject(jsonBuf);
-			return parseDailyStatus(object);
+			return parse(object);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-
 		return null;
 	}
 
@@ -359,7 +374,7 @@ public class DailyStatus implements Serializable {
 		}
 	}
 */
-	public String getDay() {
+	public String getDayString() {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		return formatter.format(whichDay);
 	}
@@ -445,4 +460,19 @@ public class DailyStatus implements Serializable {
 		mId = id;
 	}
 
+	public static DailyStatus from(Intent intent) {
+        if (intent == null) {
+            return null;
+        }
+
+		return parse(intent.getStringExtra(DAILY_STATUS));
+	}
+
+	public boolean isEmpty() {
+		return this.name == null || this.name.isEmpty();
+	}
+
+	public long getDay() {
+		return this.whichDay.getTime();
+	}
 }

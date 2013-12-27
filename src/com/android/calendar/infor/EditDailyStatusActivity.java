@@ -96,8 +96,7 @@ public class EditDailyStatusActivity extends AbstractCalendarActivity {
                 intent = getIntent();
             }
 
-            mEditFragment = new EditDailyStatusFragment(mEventInfo, mReminders, mEventColorInitialized,
-                    mEventColor, false, intent);
+            mEditFragment = new EditDailyStatusFragment(mEventInfo, false, intent);
 
             mEditFragment.mShowModifyDialogOnLaunch = getIntent().getBooleanExtra(
                     CalendarController.EVENT_EDIT_ON_LAUNCH, false);
