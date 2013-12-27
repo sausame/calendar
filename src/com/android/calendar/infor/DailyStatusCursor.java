@@ -11,15 +11,15 @@ import android.os.Bundle;
 
 import com.android.calendar.R;
 
-public class PersonalDailyInformationCursor implements Cursor {
+public class DailyStatusCursor implements Cursor {
 
-	private static final String TAG = "PersonalDailyInformationCursor";
+	private static final String TAG = "DailyStatusCursor";
 
-	private PersonalDailyInformationManager mManager = new PersonalDailyInformationManager();
+	private DailyStatusManager mManager = new DailyStatusManager();
 
-	private PersonalDailyInformation mCurrentInfor = null;
+	private DailyStatus mCurrentInfor = null;
 
-	public PersonalDailyInformationCursor(Context ctx) {
+	public DailyStatusCursor(Context ctx) {
 		mManager.setPathname(ctx.getResources().getString(
 				R.string.infor_filename));
 		mManager.load();
@@ -122,7 +122,7 @@ public class PersonalDailyInformationCursor implements Cursor {
 
 	public boolean moveToNext() {
 		mPosition ++;
-		mCurrentInfor = mManager.getPersonalDailyInformation();
+		mCurrentInfor = mManager.getDailyStatus();
 		return (mCurrentInfor != null);
 	}
 

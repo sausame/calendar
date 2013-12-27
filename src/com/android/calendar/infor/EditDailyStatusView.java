@@ -53,7 +53,7 @@ import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper;
 import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
-import com.android.calendar.infor.PersonalDailyInformation.BodyStatusEntry;
+import com.android.calendar.infor.DailyStatus.BodyStatusEntry;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
 import com.android.datetimepicker.date.DatePickerDialog.OnDateSetListener;

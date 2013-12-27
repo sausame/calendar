@@ -18,17 +18,19 @@ import org.json.JSONObject;
 import android.database.Cursor;
 import android.text.format.Time;
 
-public class PersonalDailyInformation implements Serializable {
+public class DailyStatus implements Serializable {
 
-	private static final String TAG = "PersonalDailyInformation";
-
+	private static final String TAG = "DailyStatus";
+	
+	private int mId;
+	
 	public Date whichDay;
 	public String name; // Disease name.
 	public int level;
 
 	public List<DetailInformation> detailList;
 
-	public PersonalDailyInformation() {
+	public DailyStatus() {
 		whichDay = new Date();
 		name = "";
 		level = 0;
@@ -66,7 +68,7 @@ public class PersonalDailyInformation implements Serializable {
 		return this.whichDay.compareTo(whichDay);
 	}
 
-	public int compare(PersonalDailyInformation infor) {
+	public int compare(DailyStatus infor) {
 		return compare(infor.whichDay);
 	}
 
@@ -111,7 +113,7 @@ public class PersonalDailyInformation implements Serializable {
 		return detailList.get(position).copy(detailInfor);
 	}
 
-	public PersonalDailyInformation copy(PersonalDailyInformation infor) {
+	public DailyStatus copy(DailyStatus infor) {
 		whichDay = infor.whichDay;
 		name = infor.name;
 		level = infor.level;
@@ -271,11 +273,11 @@ public class PersonalDailyInformation implements Serializable {
 		}
 	}
 
-	public static PersonalDailyInformation parsePersonalDailyInformation(
+	public static DailyStatus parseDailyStatus(
 			JSONObject object) {
-		PersonalDailyInformation info;
+		DailyStatus info;
 		try {
-			info = new PersonalDailyInformation();
+			info = new DailyStatus();
 
 			info.setDay(object.getString("whichDay"));
 			info.name = object.getString("name");
@@ -307,12 +309,12 @@ public class PersonalDailyInformation implements Serializable {
 		return info;
 	}
 	
-	public static PersonalDailyInformation parsePersonalDailyInformation(
+	public static DailyStatus parseDailyStatus(
 			Cursor cEvents) {
 		try {
 			String jsonBuf = cEvents.getString(0);
 			JSONObject object = new JSONObject(jsonBuf);
-			return parsePersonalDailyInformation(object);
+			return parseDailyStatus(object);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -405,11 +407,11 @@ public class PersonalDailyInformation implements Serializable {
 		return calendar.getTime();
 	}
 
-	public static PersonalDailyInformation createRandomPersonalDailyInformation() {
+	public static DailyStatus createRandomDailyStatus() {
 		Date date = new Date();
 		Random random = new Random(date.getTime());
 
-		PersonalDailyInformation infor = new PersonalDailyInformation();
+		DailyStatus infor = new DailyStatus();
 		infor.whichDay = getDay(-1 * (Math.abs(random.nextInt()) % 10));
 
 		final String NAME_GROUP[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE" };
@@ -432,4 +434,15 @@ public class PersonalDailyInformation implements Serializable {
 		// Log.i(TAG, infor.toString());
 		return infor;
 	}
+	
+	/** Returns the id. */
+	public int getId() {
+		return mId;
+	}
+
+	/** Set the id. */
+	public void setId(int id) {
+		mId = id;
+	}
+
 }

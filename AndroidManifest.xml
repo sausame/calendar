@@ -98,7 +98,7 @@
             android:theme="@style/CalendarTheme.WithActionBar">
         </activity>
 
-        <activity android:name=".infor.EditPersonalDailyStatusActivity"
+        <activity android:name=".infor.EditDailyStatusActivity"
             android:theme="@style/CalendarTheme.WithActionBar">
         </activity>
 

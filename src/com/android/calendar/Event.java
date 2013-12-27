@@ -39,7 +39,7 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.android.calendar.infor.PersonalDailyInformation;
+import com.android.calendar.infor.DailyStatus;
 
 // TODO: should Event be Parcelable so it can be passed via Intents?
 public class Event implements Cloneable {
@@ -615,9 +615,9 @@ public class Event implements Cloneable {
 	// ------------------------------------------------------------------------------
 	// For personal daily information.
 	// ------------------------------------------------------------------------------
-	private PersonalDailyInformation mInfor = null;
+	private DailyStatus mInfor = null;
 
-	public PersonalDailyInformation getInfor() {
+	public DailyStatus getInfor() {
 		return mInfor;
 	}
 
@@ -630,7 +630,7 @@ public class Event implements Cloneable {
 	}
 
 	private static Event generateEventFromInfor(Context context, long id,
-			PersonalDailyInformation infor) {
+			DailyStatus infor) {
 		Event e = new Event();
 
 		e.id = id;
@@ -674,8 +674,7 @@ public class Event implements Cloneable {
 	}
 
 	private static Event generateEventFromCursor(Context context, Cursor cEvents) {
-		PersonalDailyInformation infor = PersonalDailyInformation
-				.parsePersonalDailyInformation(cEvents);
+		DailyStatus infor = DailyStatus.parseDailyStatus(cEvents);
 		return generateEventFromInfor(context, cEvents.getPosition(), infor);
 	}
 }

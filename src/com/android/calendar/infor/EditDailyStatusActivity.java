@@ -39,8 +39,8 @@ import com.android.calendar.Utils;
 
 import java.util.ArrayList;
 
-public class EditPersonalDailyStatusActivity extends AbstractCalendarActivity {
-    private static final String TAG = "EditPersonalDailyStatusActivity";
+public class EditDailyStatusActivity extends AbstractCalendarActivity {
+    private static final String TAG = "EditDailyStatusActivity";
 
     private static final boolean DEBUG = true;
 

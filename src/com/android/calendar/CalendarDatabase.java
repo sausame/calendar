@@ -5,7 +5,9 @@ import java.util.Arrays;
 
 import com.android.calendar.AsyncQueryService.Operation;
 import com.android.calendar.AsyncQueryServiceHelper.OperationInfo;
-import com.android.calendar.infor.PersonalDailyInformationCursor;
+import com.android.calendar.infor.DailyStatus;
+import com.android.calendar.infor.DailyStatusManager;
+import com.android.calendar.infor.DailyStatusCursor;
 import com.android.calendar.month.MonthByWeekAdapter;
 import com.android.calendar.month.MonthByWeekFragment;
 import com.android.calendar.month.SimpleWeekView;
@@ -355,7 +357,7 @@ public class CalendarDatabase {
 			int startDay, int endDay, String selection, String[] selectionArgs,
 			String orderBy) {
 
-		return new PersonalDailyInformationCursor(ctx);
+		return new DailyStatusCursor(ctx);
 	}
 
 	private static boolean isEventUri(Uri uri) {
@@ -373,7 +375,7 @@ public class CalendarDatabase {
 		switch (args.op) {
 		case Operation.EVENT_ARG_QUERY:
 			if (isEventUri(args.uri)) {
-				args.result = new PersonalDailyInformationCursor(context);
+				args.result = new DailyStatusCursor(context);
 			} else {
 				args.result = null;
 			}
@@ -414,7 +416,7 @@ public class CalendarDatabase {
 
 		public Loader init(OnLoaderListener listener) {
 			listener.onLoadFinished(updateUri(),
-					new PersonalDailyInformationCursor(mContext));
+					new DailyStatusCursor(mContext));
 			return this;
 		}
 
@@ -472,6 +474,25 @@ public class CalendarDatabase {
 			ContentUris.appendId(builder, end);
 			return builder.build();
 		}
+	}
+
+	public static boolean saveDailyStatus(Context context, DailyStatus dailyStatus,
+			DailyStatus originalDailyStatus, int modification) {
+		DailyStatusManager manager = new DailyStatusManager();
+		
+		manager.setPathname(context.getResources().getString(
+				R.string.therapy_filename));
+		manager.load();
+		
+		if (originalDailyStatus != null) {
+			return manager.modify(originalDailyStatus, dailyStatus);
+		}
+		
+		boolean isOkay = manager.add(dailyStatus);
+		if (isOkay) {
+			manager.save();
+		}
+		return isOkay;
 	}
 
 	// ------------------------------------------------------------------------------

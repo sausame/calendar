@@ -17,7 +17,7 @@ package com.android.calendar.infor;
 
 import com.android.calendar.Log;
 import com.android.calendar.R;
-import com.android.calendar.infor.PersonalDailyInformation.BodyStatusEntry;
+import com.android.calendar.infor.DailyStatus.BodyStatusEntry;
 
 import android.app.Activity;
 import android.content.res.Resources;

@@ -14,9 +14,9 @@ import org.json.JSONObject;
 
 import com.android.calendar.Log;
 
-public class PersonalDailyInformationManager {
+public class DailyStatusManager {
 
-	private static final String TAG = "PersonalDailyInformationManager";
+	private static final String TAG = "DailyStatusManager";
 
 	private JSONArray mJsonArray = null;
 	private int mCurrentIndex = 0;
@@ -42,7 +42,7 @@ public class PersonalDailyInformationManager {
 			}
 			br.close();
 
-			setPersonalDailyInformationBuffer(sb.toString());
+			setDailyStatusBuffer(sb.toString());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -71,7 +71,7 @@ public class PersonalDailyInformationManager {
 		}
 	}
 
-	private void setPersonalDailyInformationBuffer(String buffer) {
+	private void setDailyStatusBuffer(String buffer) {
 		try {
 			mJsonArray = new JSONArray(buffer);
 			mCurrentIndex = 0;
@@ -89,13 +89,13 @@ public class PersonalDailyInformationManager {
 		mCurrentIndex = 0;
 	}
 
-	public boolean add(PersonalDailyInformation newInfor) {
+	public boolean add(DailyStatus newInfor) {
 		reset();
 
-		PersonalDailyInformation infor = null;
+		DailyStatus infor = null;
 
 		try {
-			while (null != (infor = getPersonalDailyInformation())) {
+			while (null != (infor = getDailyStatus())) {
 				int diff = infor.compare(newInfor);
 
 				if (diff > 0) {
@@ -140,9 +140,9 @@ public class PersonalDailyInformationManager {
 
 		JSONArray array = new JSONArray();
 
-		PersonalDailyInformation infor = null;
+		DailyStatus infor = null;
 
-		for (; null != (infor = getPersonalDailyInformation()); id--) {
+		for (; null != (infor = getDailyStatus()); id--) {
 			if (0 == id) {
 				continue;
 			}
@@ -154,15 +154,20 @@ public class PersonalDailyInformationManager {
 		return true;
 	}
 
-	public boolean modify(int id, PersonalDailyInformation newInfor) {
+	public boolean modify(int id, DailyStatus newInfor) {
 		if (!del(id)) {
 			return false;
 		}
 
 		return add(newInfor);
 	}
+	
+	public boolean modify(DailyStatus originalDailyStatus,
+			DailyStatus dailyStatus) {
+		return modify(originalDailyStatus.getId(), dailyStatus);
+	}
 
-	public PersonalDailyInformation getPersonalDailyInformation() {
+	public DailyStatus getDailyStatus() {
 		if (null == mJsonArray || mCurrentIndex >= mJsonArray.length()) {
 			Log.d(TAG, (mJsonArray == null) ? "NO array" : "" + mCurrentIndex
 					+ " >= " + mJsonArray.length());
@@ -174,18 +179,18 @@ public class PersonalDailyInformationManager {
 //					"Try to get " + mCurrentIndex + " in "
 //							+ mJsonArray.length());
 			JSONObject obj = mJsonArray.getJSONObject(mCurrentIndex++);
-			return PersonalDailyInformation.parsePersonalDailyInformation(obj);
+			return DailyStatus.parseDailyStatus(obj);
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return null;
 		}
 	}
 
-	public PersonalDailyInformation getPersonalDailyInformation(Date whichDay) {
+	public DailyStatus getDailyStatus(Date whichDay) {
 		reset();
 
-		PersonalDailyInformation infor = null;
-		while (null != (infor = getPersonalDailyInformation())) {
+		DailyStatus infor = null;
+		while (null != (infor = getDailyStatus())) {
 			int diff = infor.compare(whichDay);
 
 			if (0 == diff) {
@@ -219,14 +224,14 @@ public class PersonalDailyInformationManager {
 	}
 
 	public static void test() {
-		PersonalDailyInformationManager manager = new PersonalDailyInformationManager();
+		DailyStatusManager manager = new DailyStatusManager();
 		manager.setPathname("/sdcard/0.json");
 
 		manager.load();
 		Log.i(TAG, manager.toString());
 
-		manager.add(PersonalDailyInformation
-				.createRandomPersonalDailyInformation());
+		manager.add(DailyStatus
+				.createRandomDailyStatus());
 
 		manager.save();
 		Log.i(TAG, manager.toString());

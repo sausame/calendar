@@ -40,7 +40,7 @@ import android.text.format.Time;
 import android.util.Pair;
 
 import com.android.calendar.event.EditEventActivity;
-import com.android.calendar.infor.EditPersonalDailyStatusActivity;
+import com.android.calendar.infor.EditDailyStatusActivity;
 import com.android.calendar.selectcalendars.SelectVisibleCalendarsActivity;
 import com.android.calendar.therapy.EditTherapyActivity;
 
@@ -624,7 +624,7 @@ public class CalendarController {
                 launchSearch(event.id, event.query, event.componentName);
                 return;
 			} else if (event.eventType == EventType.CREATE_PERSONAL_DAILY_STATUS) {
-                launchCreatePersonalDailyStatus(event.startTime.toMillis(false),
+                launchCreateDailyStatus(event.startTime.toMillis(false),
 							event.eventTitle, event.calendarId);
                 return;
 			} else if (event.eventType == EventType.CREATE_THERAPY) {
@@ -767,17 +767,17 @@ public class CalendarController {
         return intent;
     }
 
-    private void launchCreatePersonalDailyStatus(long whenMillis, String title, long calendarId) {
-        Intent intent = generateCreatePersonalDailyStatusIntent(whenMillis, title,
+    private void launchCreateDailyStatus(long whenMillis, String title, long calendarId) {
+        Intent intent = generateCreateDailyStatusIntent(whenMillis, title,
             calendarId);
         mEventId = -1;
         mContext.startActivity(intent);
     }
 
-    public Intent generateCreatePersonalDailyStatusIntent(long whenMillis,
+    public Intent generateCreateDailyStatusIntent(long whenMillis,
         String title, long calendarId) {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setClass(mContext, EditPersonalDailyStatusActivity.class);
+        intent.setClass(mContext, EditDailyStatusActivity.class);
         intent.putExtra(EXTRA_EVENT_BEGIN_TIME, whenMillis);
         intent.putExtra(Events.CALENDAR_ID, calendarId);
         intent.putExtra(Events.TITLE, title);
