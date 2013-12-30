@@ -257,7 +257,14 @@ public class EditTherapyFragment extends Fragment implements EventHandler {
         if (mTherapy == null) {
         	mTherapy = new Therapy();
         	mTherapy.setId(-1);
-        	mTherapy.setDay((new Date()).getTime());
+			long when = 0;
+            if (mEvent.startTime != null) {
+                when = mEvent.startTime.toMillis(true);
+            } else {
+				when = (new Date()).getTime();
+			}
+ 
+        	mTherapy.setDay(when);
         }
         
         mInputMethodManager = (InputMethodManager)
