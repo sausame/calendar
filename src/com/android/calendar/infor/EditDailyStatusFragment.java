@@ -71,6 +71,7 @@ import com.android.colorpicker.HsvColorComparator;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 
 @SuppressLint("ValidFragment")
 public class EditDailyStatusFragment extends Fragment implements EventHandler {
@@ -186,8 +187,8 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler {
                         return;
                     }
 
-                    mOriginalDailyStatus = DailyStatus.parseDailyStatus(cursor);
-                    mDailyStatus = DailyStatus.parseDailyStatus(cursor);
+                    mOriginalDailyStatus = DailyStatus.parse(cursor);
+                    mDailyStatus = DailyStatus.parse(cursor);
                     cursor.close();
 
                     eventId = mDailyStatus.getId();
@@ -269,6 +270,14 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler {
         if (mDailyStatus == null) {
         	mDailyStatus = new DailyStatus();
         	mDailyStatus.setId(-1);        	
+
+			long when = 0;
+            if (mEvent.startTime != null) {
+                when = mEvent.startTime.toMillis(true);
+            } else {
+				when = (new Date()).getTime();
+			}
+        	mDailyStatus.setDay(when);
         }
         
         mInputMethodManager = (InputMethodManager)

@@ -51,8 +51,8 @@ import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
 import com.android.calendar.event.EditEventHelper;
+import com.android.calendar.infor.DailyStatus.BodyStatus;
 import com.android.calendar.infor.EditDailyStatusHelper.EditDoneRunnable;
-import com.android.calendar.infor.DailyStatus.BodyStatusEntry;
 import com.android.calendarcommon2.EventRecurrence;
 import com.android.datetimepicker.date.DatePickerDialog;
 import com.android.datetimepicker.date.DatePickerDialog.OnDateSetListener;
@@ -104,7 +104,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 	 * file, augmented with any additional values that were already associated
 	 * with the event.
 	 */
-	private ArrayList<Integer> mBodyStatusTypeValues;
+	private ArrayList<String> mBodyStatusTypeValues;
 	private ArrayList<String> mBodyStatusTypeLabels;
 	private ArrayList<String> mBodyStatusTypeDefaultValues;
 
@@ -118,7 +118,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 
 	private ArrayList<LinearLayout> mBodyStatusItems = new ArrayList<LinearLayout>(
 			0);
-	private ArrayList<BodyStatusEntry> mUnsupportedBodyStatuss = new ArrayList<BodyStatusEntry>();
+	private ArrayList<BodyStatus> mUnsupportedBodyStatuss = new ArrayList<BodyStatus>();
 
 
 	private class DateListener implements OnDateSetListener {
@@ -233,12 +233,15 @@ public class EditDailyStatusView implements View.OnClickListener,
 	// on the "remove reminder" button.
 	@Override
 	public void onClick(View view) {
-		// This must be a click on one of the "remove reminder" buttons
-		LinearLayout reminderItem = (LinearLayout) view.getParent();
-		LinearLayout parent = (LinearLayout) reminderItem.getParent();
-		parent.removeView(reminderItem);
-		mBodyStatusItems.remove(reminderItem);
-		updateBodyStatussVisibility(mBodyStatusItems.size());
+        if (view.getId() == R.id.body_status_remove) {
+			// This must be a click on one of the "remove reminder" buttons
+			LinearLayout reminderItem = (LinearLayout) view.getParent();
+			LinearLayout parent = (LinearLayout) reminderItem.getParent();
+			parent.removeView(reminderItem);
+			mBodyStatusItems.remove(reminderItem);
+			updateBodyStatussVisibility(mBodyStatusItems.size());
+        }
+
 /*		InforViewUtils.updateAddBodyStatusButton(mView, mBodyStatusItems,
 				mDailyStatus.mCalendarMaxBodyStatuss);*/
 	}
@@ -279,17 +282,18 @@ public class EditDailyStatusView implements View.OnClickListener,
 			return false;
 		}
 
-		mDailyStatus.name = mTitleTextView.getText().toString();
-		mDailyStatus.mDescription = mDescriptionTextView.getText().toString();
+		mDailyStatus.setName(mTitleTextView.getText().toString());
+		mDailyStatus.setDescription(mDescriptionTextView.getText().toString());
 
-		if (TextUtils.isEmpty(mDailyStatus.mDescription)) {
-			mDailyStatus.mDescription = null;
+		if (TextUtils.isEmpty(mDailyStatus.getDescription())) {
+			mDailyStatus.setDescription(null);
 		}
 
 		mWhenTime.hour = 0;
 		mWhenTime.minute = 0;
 		mWhenTime.second = 0;
-		mDailyStatus.mDay = mWhenTime.normalize(true);
+		
+		mDailyStatus.setDay(mWhenTime.normalize(true));
 
 		return true;
 	}
@@ -395,7 +399,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 	private void prepareBodyStatuses() {
 		Resources r = mActivity.getResources();
 
-		mBodyStatusTypeValues = loadIntegerArray(r,
+		mBodyStatusTypeValues = loadStringArray(r,
 				R.array.body_status_values);
 		mBodyStatusTypeLabels = loadStringArray(r,
 				R.array.body_status_labels);
@@ -435,7 +439,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 			return;
 		}
 
-		long begin = dailyStatus.mDay;
+		long begin = dailyStatus.getDay();
 
 		// Set up the starting times
 		if (begin > 0) {
@@ -461,12 +465,12 @@ public class EditDailyStatusView implements View.OnClickListener,
 		};
 		bodyStatusAddButton.setOnClickListener(addBodyStatusOnClickListener);
 
-		if (dailyStatus.name != null) {
-			mTitleTextView.setTextKeepState(dailyStatus.name);
+		if (dailyStatus.getName() != null) {
+			mTitleTextView.setTextKeepState(dailyStatus.getName());
 		}
 
-		if (dailyStatus.mDescription != null) {
-			mDescriptionTextView.setTextKeepState(dailyStatus.mDescription);
+		if (dailyStatus.getDescription() != null) {
+			mDescriptionTextView.setTextKeepState(dailyStatus.getDescription());
 		}
 
 		populateWhen();
@@ -544,21 +548,18 @@ public class EditDailyStatusView implements View.OnClickListener,
 	 * the default reminder time and method.
 	 */
 	private void addBodyStatus() {
+		
 		// TODO: when adding a new reminder, make it different from the
 		// last one in the list (if any).
-		if (mDefaultBodyStatusMinutes == GeneralPreferences.NO_REMINDER) {
-			InforViewUtils.addBodyStatus(mActivity, mScrollView, this,
-					mBodyStatusItems, mBodyStatusTypeValues,
-					mBodyStatusTypeLabels, mBodyStatusTypeDefaultValues,
-					BodyStatusEntry.valueOf(1),
-					Integer.MAX_VALUE, null);
-		} else {
-			InforViewUtils.addBodyStatus(mActivity, mScrollView, this,
-					mBodyStatusItems, mBodyStatusTypeValues,
-					mBodyStatusTypeLabels, mBodyStatusTypeDefaultValues,					
-					BodyStatusEntry.valueOf(1),
-					Integer.MAX_VALUE, null);
-		}
+		InforViewUtils.addBodyStatus(mActivity, mScrollView,
+				mBodyStatusItems,
+				mBodyStatusTypeValues,
+				mBodyStatusTypeLabels,
+				mBodyStatusTypeDefaultValues,
+				new BodyStatus(),
+				Integer.MAX_VALUE, 
+				this, this, this);
+
 		updateBodyStatussVisibility(mBodyStatusItems.size());
 		InforViewUtils.updateAddBodyStatusButton(mView, mBodyStatusItems, Integer.MAX_VALUE);
 	}
@@ -587,30 +588,11 @@ public class EditDailyStatusView implements View.OnClickListener,
 	@Override
 	public void onItemSelected(AdapterView<?> parent, View view, int position,
 			long id) {
-		// This is only used for the Calendar spinner in new events, and only
-		// fires when the
-		// calendar selection changes or on screen rotation
-		Cursor c = (Cursor) parent.getItemAtPosition(position);
-		if (c == null) {
-			// TODO: can this happen? should we drop this check?
-			Log.w(TAG, "Cursor not set on calendar item");
+		if (parent.getId() == R.id.body_status_type) {
+			InforViewUtils.setBodyStatusValueButton(parent.getParent(),
+					position, mBodyStatusTypeDefaultValues, this);
 			return;
 		}
-
-		// Do nothing if the selection didn't change so that reminders will not
-		// get lost
-		int idColumn = c.getColumnIndexOrThrow(Calendars._ID);
-		long calendarId = c.getLong(idColumn);
-		int colorColumn = c.getColumnIndexOrThrow(Calendars.CALENDAR_COLOR);
-		int color = c.getInt(colorColumn);
-		int displayColor = Utils.getDisplayColorFromColor(color);
-
-		// Update the UI elements.
-		mBodyStatusItems.clear();
-		LinearLayout reminderLayout = (LinearLayout) mScrollView
-				.findViewById(R.id.reminder_items_container);
-		reminderLayout.removeAllViews();
-		prepareBodyStatuses();
 	}
 
 	@Override

@@ -634,7 +634,7 @@ public class Event implements Cloneable {
 		Event e = new Event();
 
 		e.id = id;
-		e.title = infor.name + " (" + id + ")";
+		e.title = infor.getName() + " (" + id + ")";
 		e.location = "";
 		e.allDay = true;
 		e.organizer = "";
@@ -645,9 +645,9 @@ public class Event implements Cloneable {
 		}
 
 		e.color = Utils.getDisplayColorFromColor(context.getResources()
-				.getColor(getColorFromLevel(infor.level)));
+				.getColor(getColorFromLevel(infor.getLevel())));
 
-		long eStart = infor.whichDay.getTime();
+		long eStart = infor.getDay();
 		long eEnd = eStart;
 		
 		Time t = new Time(); 
@@ -674,7 +674,7 @@ public class Event implements Cloneable {
 	}
 
 	private static Event generateEventFromCursor(Context context, Cursor cEvents) {
-		DailyStatus infor = DailyStatus.parseDailyStatus(cEvents);
+		DailyStatus infor = DailyStatus.parse(cEvents);
 		return generateEventFromInfor(context, cEvents.getPosition(), infor);
 	}
 }

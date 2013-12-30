@@ -16,312 +16,238 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.android.calendar.Log;
-import com.android.calendar.therapy.Therapy;
 
 import android.content.Intent;
 import android.database.Cursor;
 import android.text.format.Time;
 
-public class DailyStatus implements Serializable {
+/**
+ * A single daily status.
+ *
+ * Instances of the class are immutable.
+ */
+public class DailyStatus implements Comparable<DailyStatus>, Serializable { 
 
 	public final static String DAILY_STATUS = "daily_status";
-	
-	private static final String TAG = "DailyStatus";
-	
+
 	private int mId;
-	
-	public Date whichDay;
-	public String name; // Disease name.
-	public int level;
-	
-	public long mDay;
-	public String mDescription;
 
-	public List<DetailInformation> detailList;
+	private int mLevel;
+	private String mName;
+	private String mPart;
+	private long mDay;
+	private String mDescription;
+	private boolean mPrivacy;
+	private BodyStatus mBodyStatusesGroup[];
 
+	public static class BodyStatus {
+        private String mType;
+        private String mValue;
+
+		/** Returns the type. */
+		public String getType() {
+			return mType;
+		}
+
+		/** Set the type. */
+		public void setType(String type) {
+			mType = type;
+		}
+
+		/** Returns the value. */
+		public String getValue() {
+			return mValue;
+		}
+
+		/** Set the value. */
+		public void setValue(String value) {
+			mValue = value;
+		}
+	}
+
+	/**
+	 * Constructs a new DailyStatus.
+	 *
+	 */
 	public DailyStatus() {
-		whichDay = new Date();
-		name = "";
-		level = 0;
+		// TODO: error-check args
 	}
 
-	public boolean isYesterday(Date whichDay) {
-		return isSameDay(getDay(whichDay, -1));
+	@Override
+	public int hashCode() {
+		return (int) mDay;
 	}
 
-	public boolean isSameDay(Date whichDay) {
-		return isSameDay(this.whichDay, whichDay);
-	}
-
-	public static boolean isSameDay(Date day1, Date day2) {
-		Calendar c1 = new GregorianCalendar();
-		Calendar c2 = new GregorianCalendar();
-
-		c1.setTime(day1);
-		c2.setTime(day2);
-
-		if (c1.get(Calendar.YEAR) != c2.get(Calendar.YEAR)) {
-			return false;
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
 		}
-		if (c1.get(Calendar.MONTH) != c2.get(Calendar.MONTH)) {
-			return false;
-		}
-		if (c1.get(Calendar.DAY_OF_MONTH) != c2.get(Calendar.DAY_OF_MONTH)) {
+		if (!(obj instanceof DailyStatus)) {
 			return false;
 		}
 
-		return true;
+		DailyStatus re = (DailyStatus) obj;
+		return this.mName.equals(re.getName())
+			&& re.getDay() == this.mDay;
 	}
 
-	public int compare(Date whichDay) {
-		return this.whichDay.compareTo(whichDay);
-	}
-
-	public int compare(DailyStatus infor) {
-		return compare(infor.whichDay);
-	}
-
-	public int getDetailNumber() {
-		return detailList == null ? 0 : detailList.size();
-	}
-
-	public void addDetail(DetailInformation detailInfor) {
-		if (detailList == null) {
-			detailList = new ArrayList<DetailInformation>();
+	/**
+	 * Comparison function for a sort ordered primarily descending by part,
+	 * secondarily ascending by value part.
+	 */
+	@Override
+	public int compareTo(DailyStatus re) {
+		int diff;
+		
+		if ((diff = (int) (re.getDay() - this.mDay)) != 0) {
+			return diff;
 		}
-
-		detailList.add(detailInfor);
+	
+		return this.mName.compareTo(re.getName());
 	}
 
-	public void delDetail(int position) {
-		if (detailList == null || position >= detailList.size()) {
-			return;
-		}
-
-		detailList.remove(position);
+	public int compareTo(long milliseconds) {
+		return (int) (milliseconds - this.mDay);
 	}
 
-	public boolean isDetailExist(int position) {
-		return position < getDetailNumber();
-	}
+	@Override
+	public String toString() {
+		String str = "";
 
-	public DetailInformation getDetail(int position) {
-		if (!isDetailExist(position)) {
-			return null;
-		}
+		str += "\nID=" + mId;
 
-		return detailList.get(position);
-	}
+		str += "\nLevel=" + mLevel;
+		str += "\nName=" + mName;
+		str += "\nPart=" + mPart;
+		str += "\nDay=" + mDay;
+		str += "\nDescription=" + mDescription;
+		str += "\nPrivacy=" + mPrivacy;
 
-	public DetailInformation setDetail(int position,
-			DetailInformation detailInfor) {
-		if (!isDetailExist(position)) {
-			return null;
-		}
+		if (mBodyStatusesGroup != null) {
 
-		return detailList.get(position).copy(detailInfor);
-	}
-
-	public DailyStatus copy(DailyStatus infor) {
-		whichDay = infor.whichDay;
-		name = infor.name;
-		level = infor.level;
-
-		detailList = infor.detailList;
-		return this;
-	}
-
-    /**
-     * A single body status entry.
-     *
-     * Instances of the class are immutable.
-     */
-    public static class BodyStatusEntry implements Comparable<BodyStatusEntry>, Serializable {
-        private final int mType;
-        private final String mValue;
-
-        /**
-         * Returns a new BodyStatusEntry, with the specified type and value.
-         *
-         * @param type Number of type before the start of the event that the alert will fire.
-         * @param value Type of alert ({@link BodyStatuss#METHOD_ALERT}, etc).
-         */
-        public static BodyStatusEntry valueOf(int type, String value) {
-            // TODO: cache common instances
-            return new BodyStatusEntry(type, value);
-        }
-
-        /**
-         * Returns a BodyStatusEntry, with the specified number of type and a default alert value.
-         *
-         * @param type Number of type before the start of the event that the alert will fire.
-         */
-        public static BodyStatusEntry valueOf(int type) {
-            return valueOf(type, "");
-        }
-
-        /**
-         * Constructs a new BodyStatusEntry.
-         *
-         * @param type Number of type before the start of the event that the alert will fire.
-         * @param value Type of alert ({@link BodyStatuss#METHOD_ALERT}, etc).
-         */
-        private BodyStatusEntry(int type, String value) {
-            // TODO: error-check args
-            mType = type;
-            mValue = value;
-        }
-
-        @Override
-        public int hashCode() {
-            return mType * 10;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (!(obj instanceof BodyStatusEntry)) {
-                return false;
-            }
-
-            BodyStatusEntry re = (BodyStatusEntry) obj;
-
-            if (re.mType != mType) {
-                return false;
-            }
-
-            return re.mValue.equals(mValue);
-        }
-
-        @Override
-        public String toString() {
-            return "BodyStatusEntry type=" + mType + " value=" + mValue;
-        }
-
-        /**
-         * Comparison function for a sort ordered primarily descending by type,
-         * secondarily ascending by value type.
-         */
-        @Override
-        public int compareTo(BodyStatusEntry re) {
-            if (re.mType != mType) {
-                return re.mType - mType;
-            }
-            if (re.mValue.equals(mValue)) {
-                return mValue.compareTo(re.mValue);
-            }
-            return 0;
-        }
-
-        /** Returns the type. */
-        public int getType() {
-            return mType;
-        }
-
-        /** Returns the alert value. */
-        public String getValue() {
-            return mValue;
-        }
-    }
-
-
-
-	public static class DetailInformation implements Serializable {
-		public String description;
-		public String attachmentPath;
-
-		public DetailInformation() {
-			description = "";
-			attachmentPath = "";
-		}
-
-		public DetailInformation(DetailInformation infor) {
-			this.copy(infor);
-		}
-
-		public static DetailInformation parseDetailInformation(JSONObject object) {
-			try {
-				DetailInformation detailInfo = new DetailInformation();
-
-				detailInfo.description = object.getString("description");
-				detailInfo.attachmentPath = object.getString("attachmentPath");
-
-				return detailInfo;
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
+			for (BodyStatus status: mBodyStatusesGroup) {
+				str += "\n" + status.mType + "=" + status.mValue;
 			}
 		}
+		return str;
+	}
 
-		public DetailInformation copy(DetailInformation infor) {
-			description = infor.description;
-			attachmentPath = infor.attachmentPath;
-			return this;
-		}
+	/** Returns the id. */
+	public int getId() {
+		return mId;
+	}
 
-		public JSONObject toJSONObject() {
-			try {
-				JSONObject object = new JSONObject();
-				object.put("description", description);
-				object.put("attachmentPath", attachmentPath);
-				return object;
-			} catch (JSONException e) {
-				e.printStackTrace();
-				return null;
-			}
-		}
+	/** Set the id. */
+	public void setId(int id) {
+		mId = id;
+	}
 
-		public String toString() {
-			String str = "";
-			str += "Description: " + description + "\n";
-			str += "AttachmentPath: " + attachmentPath + "\n";
+	/** Returns the part. */
+	public String getPart() {
+		return mPart;
+	}
 
-			return str;
-		}
+	/** Set the part. */
+	public void setPart(String part) {
+		mPart = part;
+	}
+
+	/** Returns the name. */
+	public String getName() {
+		return mName;
+	}
+
+	/** Set the name. */
+	public void setName(String name) {
+		mName = name;
+	}
+
+	/** Returns the level. */
+	public int getLevel() {
+		return mLevel;
+	}
+
+	/** Set the level. */
+	public void setLevel(int level) {
+		mLevel = level;
+	}
+
+	/** Returns the day. */
+	public long getDay() {
+		return mDay;
+	}
+
+	/** Set the day. */
+	public void setDay(long day) {
+		mDay = day;
+	}
+
+	/** Returns the body statuses group. */
+	public BodyStatus[] getBodyStatusesGroup() {
+		return mBodyStatusesGroup;
+	}
+
+	/** Set the body statuses group. */
+	public void setBodyStatusesGroup(BodyStatus[] bodyStatusesGroup) {
+		mBodyStatusesGroup = bodyStatusesGroup;
+	}
+
+	/** Returns the description. */
+	public String getDescription() {
+		return mDescription;
+	}
+
+	/** Set the description. */
+	public void setDescription(String description) {
+		mDescription = description;
+	}
+
+	/** Returns the privacy. */
+	public boolean getPrivacy() {
+		return mPrivacy;
+	}
+
+	/** Set the privacy. */
+	public void setPrivacy(boolean privacy) {
+		mPrivacy = privacy;
 	}
 
 	public static DailyStatus parse(JSONObject object) {
-		DailyStatus info;
+		DailyStatus daily_status = null;
 		try {
-			info = new DailyStatus();
+			daily_status = new DailyStatus();
 
-			info.setDay(object.getString("whichDay"));
-			info.name = object.getString("name");
-			info.level = Integer.parseInt(object.getString("level"));
+			daily_status.setDay(Long.parseLong(object.getString("day")));
+			daily_status.setDescription(object.getString("description"));
+			daily_status.setLevel(Integer.parseInt(object.getString("level")));
+			daily_status.setName(object.getString("name"));
+			daily_status.setPart(object.getString("part"));
+			daily_status.setPrivacy(Integer.parseInt(object.getString("privacy")) != 0);
+
+			JSONArray jsonArray = object.getJSONArray("body_status");
+			int num = jsonArray.length();
+			if (num > 0) {
+				BodyStatus group[] = new BodyStatus[num];
+				for (int i = 0; i < num; i++) {
+					JSONObject obj = jsonArray.getJSONObject(i);
+					group[i].mType = obj.getString("type");
+					group[i].mValue = obj.getString("value");
+				}
+				daily_status.setBodyStatusesGroup(group);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
-
-		try {
-			JSONArray jsonArray = object.getJSONArray("detailList");
-			int num = jsonArray.length();
-			if (num > 0) {
-				info.detailList = new ArrayList<DetailInformation>();
-
-				for (int i = 0; i < num; i++) {
-					JSONObject obj = jsonArray.getJSONObject(i);
-					DetailInformation detailInfo = DetailInformation
-							.parseDetailInformation(obj);
-					if (detailInfo != null) {
-						info.detailList.add(detailInfo);
-					}
-				}
-			}
-		} catch (Exception e) {
-//			e.printStackTrace();
-		}
-
-		return info;
+		
+		return daily_status;
 	}
 	
-	public static DailyStatus parseDailyStatus(
-			Cursor cEvents) {
+	public static DailyStatus parse(Cursor cEvents) {
 		return parse(cEvents.getString(0));
 	}
-	
+
 	public static DailyStatus parse(String jsonBuf) {
 		if (jsonBuf == null || jsonBuf.isEmpty()) {
 			Log.v("Empty string: " + jsonBuf);
@@ -337,127 +263,36 @@ public class DailyStatus implements Serializable {
 		return null;
 	}
 
-	public String toString() {
-		String str = "Date: " + whichDay + "\n";
-		str += "Name: " + name + "\n";
-		str += "Level: " + level + "\n";
-
-		if (detailList != null) {
-			for (int i = 0; i < detailList.size(); i++) {
-				str += "NO." + i + ": " + detailList.get(i).description + ", "
-						+ detailList.get(i).attachmentPath + "\n";
-			}
-			str += "\n";
-		}
-
-		return str;
-	}
-/*
-	private final String getUTCDateTime() {
-		try {
-			DateFormat df = DateFormat.getDateTimeInstance();
-			df.setTimeZone(TimeZone.getTimeZone("UTC"));
-			return df.format(whichDay);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-
-	private void setUTCDateTime(String dt) {
-		try {
-			DateFormat df = DateFormat.getDateTimeInstance();
-			df.setTimeZone(TimeZone.getTimeZone("UTC"));
-			whichDay = df.parse(dt);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-*/
-	public String getDayString() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		return formatter.format(whichDay);
-	}
-
-	public void setDay(String day) {
-		try {
-			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-			whichDay = formatter.parse(day);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	public JSONObject toJSONObject() {
 		try {
 			JSONObject object = new JSONObject();
-			object.put("whichDay", getDay());
-			object.put("name", name);
-			object.put("level", level);
 
-			if (detailList != null) {
+			object.put("day", Long.toString(this.getDay()));
+			object.put("description", this.getDescription());
+			object.put("level", this.getLevel());
+			object.put("name", this.getName());
+			object.put("part", this.getPart());
+			object.put("privacy", this.getPrivacy() ? 1 : 0);
+
+			if (this.getBodyStatusesGroup() != null) {
 				JSONArray objectArray = new JSONArray();
-				for (int i = 0; i < detailList.size(); i++) {
-					objectArray.put(detailList.get(i).toJSONObject());
+				for (BodyStatus status : this.getBodyStatusesGroup()) {
+					JSONObject obj = new JSONObject();
+					obj.put("type", status.mType);
+					obj.put("value", status.mValue);
+					objectArray.put(obj);
 				}
 
-				object.put("detailList", objectArray);
+				object.put("body_status", objectArray);
 			}
+
+			Log.v(this.toString());
+			Log.v(object.toString(2));
 			return object;
 		} catch (JSONException e) {
 			e.printStackTrace();
 			return null;
 		}
-	}
-
-	private static Date getDay(int diff) {
-		return getDay(new Date(), diff);
-	}
-
-	private static Date getDay(Date date, int diff) {
-		Calendar calendar = new GregorianCalendar();
-		calendar.setTime(date);
-		calendar.add(Calendar.DATE, diff);
-
-		return calendar.getTime();
-	}
-
-	public static DailyStatus createRandomDailyStatus() {
-		Date date = new Date();
-		Random random = new Random(date.getTime());
-
-		DailyStatus infor = new DailyStatus();
-		infor.whichDay = getDay(-1 * (Math.abs(random.nextInt()) % 10));
-
-		final String NAME_GROUP[] = { "AAAA", "BBBB", "CCCC", "DDDD", "EEEE" };
-
-		infor.name = NAME_GROUP[Math.abs(random.nextInt()) % 5];
-
-		int num = Math.abs(random.nextInt()) % 4;
-
-		if (num > 0) {
-			infor.detailList = new ArrayList<DetailInformation>();
-			for (int i = 0; i < num; i++) {
-				DetailInformation detailInfo = new DetailInformation();
-
-				detailInfo.description = "NO." + i + ": description.";
-				detailInfo.attachmentPath = "NO." + i + ": attachmentPath.";
-				infor.detailList.add(detailInfo);
-			}
-		}
-
-		// Log.i(TAG, infor.toString());
-		return infor;
-	}
-	
-	/** Returns the id. */
-	public int getId() {
-		return mId;
-	}
-
-	/** Set the id. */
-	public void setId(int id) {
-		mId = id;
 	}
 
 	public static DailyStatus from(Intent intent) {
@@ -466,13 +301,9 @@ public class DailyStatus implements Serializable {
         }
 
 		return parse(intent.getStringExtra(DAILY_STATUS));
-	}
+    }
 
 	public boolean isEmpty() {
-		return this.name == null || this.name.isEmpty();
-	}
-
-	public long getDay() {
-		return this.whichDay.getTime();
+		return this.mName == null || this.mName.isEmpty();
 	}
 }

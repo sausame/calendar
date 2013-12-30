@@ -17,14 +17,17 @@ package com.android.calendar.infor;
 
 import com.android.calendar.Log;
 import com.android.calendar.R;
-import com.android.calendar.infor.DailyStatus.BodyStatusEntry;
+import com.android.calendar.infor.DailyStatus.BodyStatus;
 
 import android.app.Activity;
 import android.content.res.Resources;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewParent;
+import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -45,7 +48,7 @@ public class InforViewUtils {
      * @param type the type to search for in the values list
      * @return the index of "type" in the "values" list
      */
-    public static int findTypeInBodyStatusList(ArrayList<Integer> values, int type) {
+    public static int findTypeInBodyStatusList(ArrayList<String> values, String type) {
         int index = values.indexOf(type);
         if (index == -1) {
             // This should never happen.
@@ -69,6 +72,15 @@ public class InforViewUtils {
     }
 
     /**
+     * Sort bodyStatus.
+     *
+     * @param bodyStatusItems UI elements (layouts with spinners) that hold array indices.
+     */
+	public static void sortBodyStatusItems(Activity activity,
+			ArrayList<LinearLayout> bodyStatusItems) {
+	}
+ 
+    /**
      * Adds a body status to the displayed list of body statuss. The values/labels
      * arrays must not change after calling here, or the spinners we created
      * might index into the wrong entry. Returns true if successfully added
@@ -79,13 +91,18 @@ public class InforViewUtils {
      * initial position of the spinner into the spinner's tag for comparison
      * with any new position setting.
      */
-    public static boolean addBodyStatus(Activity activity, View view, View.OnClickListener listener,
-            ArrayList<LinearLayout> items, ArrayList<Integer> typeValues,
-            ArrayList<String> typeLabels, ArrayList<String> defaultValues,
-			BodyStatusEntry newBodyStatus, int maxBodyStatuss,
-            OnItemSelectedListener onItemSelected) {
+    public static boolean addBodyStatus(Activity activity, View view,
+            ArrayList<LinearLayout> items,
+			ArrayList<String> typeValues,
+            ArrayList<String> typeLabels,
+            ArrayList<String> defaultValues,
+			BodyStatus newBodyStatus,
+			int maxBodyStatuses,
+			OnItemSelectedListener onItemSelected,
+			View.OnClickListener removeListener,
+			View.OnClickListener setValueListener) {
 
-        if (items.size() >= maxBodyStatuss) {
+        if (items.size() >= maxBodyStatuses) {
             return false;
         }
 
@@ -97,7 +114,7 @@ public class InforViewUtils {
 
         ImageButton bodyStatusRemoveButton;
         bodyStatusRemoveButton = (ImageButton) bodyStatusItem.findViewById(R.id.body_status_remove);
-        bodyStatusRemoveButton.setOnClickListener(listener);
+        bodyStatusRemoveButton.setOnClickListener(removeListener);
 
         /*
          * The spinner has the default set of labels from the string resource file, but we
@@ -114,17 +131,11 @@ public class InforViewUtils {
             spinner.setOnItemSelectedListener(onItemSelected);
         }
 
-		EditText editText = (EditText) bodyStatusItem.findViewById(R.id.body_status_value);
-		
-		editText.setText(newBodyStatus.getValue());		
-		editText.setHint(defaultValues.get(index));
-		
-        if (onItemSelected != null) {
-            spinner.setTag(index);
-            spinner.setOnItemSelectedListener(onItemSelected);
-        }
+		setBodyStatusValueButton(bodyStatusItem, index, defaultValues, setValueListener);
 
         items.add(bodyStatusItem);
+
+        sortBodyStatusItems(activity, items);
 
         return true;
     }
@@ -134,10 +145,10 @@ public class InforViewUtils {
      * body statuses.
      */
     public static void updateAddBodyStatusButton(View view, ArrayList<LinearLayout> bodyStatuses,
-            int maxBodyStatuss) {
+            int maxBodyStatuses) {
         View button = view.findViewById(R.id.body_status_add);
         if (button != null) {
-            if (bodyStatuses.size() >= maxBodyStatuss) {
+            if (bodyStatuses.size() >= maxBodyStatuses) {
                 button.setEnabled(false);
                 button.setVisibility(View.GONE);
             } else {
@@ -146,5 +157,14 @@ public class InforViewUtils {
             }
         }
     }
+
+	public static void setBodyStatusValueButton(ViewParent parent, int index,
+            ArrayList<String> defaultValues, View.OnClickListener setValueListener) {
+		Button setValueButton;
+        setValueButton = (Button) ((View) parent).findViewById(R.id.body_status_value);
+		setValueButton.setTag(index);
+        setValueButton.setOnClickListener(setValueListener);
+        setValueButton.setText(defaultValues.get(index));
+	}
 
 }

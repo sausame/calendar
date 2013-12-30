@@ -96,7 +96,7 @@ public class DailyStatusManager {
 
 		try {
 			while (null != (infor = getDailyStatus())) {
-				int diff = infor.compare(newInfor);
+				int diff = infor.compareTo(newInfor);
 
 				if (diff > 0) {
 					continue;
@@ -191,7 +191,7 @@ public class DailyStatusManager {
 
 		DailyStatus infor = null;
 		while (null != (infor = getDailyStatus())) {
-			int diff = infor.compare(whichDay);
+			int diff = infor.compareTo(whichDay.getTime());
 
 			if (0 == diff) {
 				return infor;
@@ -223,17 +223,4 @@ public class DailyStatusManager {
 		return str;
 	}
 
-	public static void test() {
-		DailyStatusManager manager = new DailyStatusManager();
-		manager.setPathname("/sdcard/0.json");
-
-		manager.load();
-		Log.i(TAG, manager.toString());
-
-		manager.add(DailyStatus
-				.createRandomDailyStatus());
-
-		manager.save();
-		Log.i(TAG, manager.toString());
-	}
 }
