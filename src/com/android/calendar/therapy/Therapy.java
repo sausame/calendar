@@ -30,6 +30,8 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 
 	public final static String THERAPY = "therapy";
 
+	private static String TAG = "Therapy";
+
 	private int mId;
 
 	// In every time.
@@ -241,35 +243,60 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 	public void setPrivacy(boolean privacy) {
 		mPrivacy = privacy;
 	}
-
-	public static Therapy parse(JSONObject object) {
-		Therapy therapy = null;
+	
+	public static String getStringValue(JSONObject object, String name) {
 		try {
-			therapy = new Therapy();
+			return object.getString(name);
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+			return null;
+		}
+	}
 
-			therapy.setDay(Long.parseLong(object.getString("day")));
-			therapy.setDescription(object.getString("description"));
-			therapy.setHasAlarm(Integer.parseInt(object.getString("hasAlarm")) != 0);
-			therapy.setName(object.getString("name"));
-			therapy.setNumberInEveryTime(Integer.parseInt(object.getString("numberInEveryTime")));
-			therapy.setPrivacy(Integer.parseInt(object.getString("privacy")) != 0);
-			therapy.setType(Integer.parseInt(object.getString("type")));
-			therapy.setUsageRule(object.getString("usageRule"));
-			therapy.setUsageTypeInEveryTime(Integer.parseInt(object.getString("usageTypeInEveryTime")));
+	public static int getIntegerValue(JSONObject object, String name) {
+		try {
+			return Integer.parseInt(getStringValue(object, name));
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+			return 0;
+		}
+	}
 
+	public static long getLongValue(JSONObject object, String name) {
+		try {
+			return Long.parseLong(getStringValue(object, name));
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+			return 0;
+		}
+	}
+	
+	public static Therapy parse(JSONObject object) {
+		Therapy therapy = new Therapy();
+
+		therapy.setDay(getLongValue(object, "day"));
+		therapy.setDescription(getStringValue(object, "description"));
+		therapy.setHasAlarm(getIntegerValue(object, "hasAlarm") != 0);
+		therapy.setName(getStringValue(object, "name"));
+		therapy.setNumberInEveryTime(getIntegerValue(object, "numberInEveryTime"));
+		therapy.setPrivacy(getIntegerValue(object, "privacy") != 0);
+		therapy.setType(getIntegerValue(object, "type"));
+		therapy.setUsageRule(getStringValue(object, "usageRule"));
+		therapy.setUsageTypeInEveryTime(getIntegerValue(object, "usageTypeInEveryTime"));
+		
+		try {
 			JSONArray jsonArray = object.getJSONArray("reminder");
 			int num = jsonArray.length();
 			if (num > 0) {
 				long group[] = new long[num];
 				for (int i = 0; i < num; i++) {
 					JSONObject obj = jsonArray.getJSONObject(i);
-					group[i] = Long.parseLong(obj.getString("time"));
+					group[i] = getLongValue(obj, "time");
 				}
 				therapy.setRemindersGroup(group);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			Log.e(TAG, e.toString());
 		}
 		
 		return therapy;

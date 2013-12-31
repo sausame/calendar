@@ -30,6 +30,8 @@ public class DailyStatus implements Comparable<DailyStatus>, Serializable {
 
 	public final static String DAILY_STATUS = "daily_status";
 
+	private static String TAG = "DailyStatus";
+
 	private int mId;
 
 	private int mLevel;
@@ -213,35 +215,60 @@ public class DailyStatus implements Comparable<DailyStatus>, Serializable {
 		mPrivacy = privacy;
 	}
 
-	public static DailyStatus parse(JSONObject object) {
-		DailyStatus daily_status = null;
+	public static String getStringValue(JSONObject object, String name) {
 		try {
-			daily_status = new DailyStatus();
+			return object.getString(name);
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+			return null;
+		}
+	}
 
-			daily_status.setDay(Long.parseLong(object.getString("day")));
-			daily_status.setDescription(object.getString("description"));
-			daily_status.setLevel(Integer.parseInt(object.getString("level")));
-			daily_status.setName(object.getString("name"));
-			daily_status.setPart(object.getString("part"));
-			daily_status.setPrivacy(Integer.parseInt(object.getString("privacy")) != 0);
+	public static int getIntegerValue(JSONObject object, String name) {
+		try {
+			return Integer.parseInt(getStringValue(object, name));
+		} catch (Exception e) {
+			Log.e(TAG , e.toString());
+			return 0;
+		}
+	}
 
+	public static long getLongValue(JSONObject object, String name) {
+		try {
+			return Long.parseLong(getStringValue(object, name));
+		} catch (Exception e) {
+			Log.e(TAG, e.toString());
+			return 0;
+		}
+	}
+
+	public static DailyStatus parse(JSONObject object) {
+		DailyStatus dailyStatus = new DailyStatus();
+
+		dailyStatus.setDay(getLongValue(object, "day"));
+		dailyStatus.setDescription(getStringValue(object, "description"));
+		dailyStatus.setLevel(getIntegerValue(object, "level"));
+		dailyStatus.setName(getStringValue(object, "name"));
+		dailyStatus.setPart(getStringValue(object, "part"));
+		dailyStatus.setPrivacy(getIntegerValue(object, "privacy") != 0);
+		
+		try {
 			JSONArray jsonArray = object.getJSONArray("body_status");
 			int num = jsonArray.length();
 			if (num > 0) {
 				BodyStatus group[] = new BodyStatus[num];
 				for (int i = 0; i < num; i++) {
 					JSONObject obj = jsonArray.getJSONObject(i);
-					group[i].mType = obj.getString("type");
-					group[i].mValue = obj.getString("value");
+					group[i].mType = getStringValue(obj, "type");
+					group[i].mValue = getStringValue(obj, "value");
 				}
-				daily_status.setBodyStatusesGroup(group);
+				dailyStatus.setBodyStatusesGroup(group);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			Log.e(TAG, e.toString());
 		}
 		
-		return daily_status;
+		return dailyStatus;
 	}
 	
 	public static DailyStatus parse(Cursor cEvents) {
