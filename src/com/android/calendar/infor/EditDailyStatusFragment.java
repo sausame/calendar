@@ -465,7 +465,7 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler {
                 mModification = Utils.MODIFY_ALL;
             }
 
-            if ((mCode & Utils.DONE_SAVE) != 0 && mDailyStatus != null
+            if ((mCode & Utils.DONE_SAVE) != 0
             		&& mDailyStatus != null
                     && mView.prepareForSave()
                     && !isEmptyNewDailyStatus()
@@ -474,11 +474,11 @@ public class EditDailyStatusFragment extends Fragment implements EventHandler {
                 int stringResource;
  
 				if (mOriginalDailyStatus != null) {
-					stringResource = R.string.saving_event_with_guest;
+					stringResource = R.string.saving_event;
 				} else {
-					stringResource = R.string.creating_event_with_guest;
+					stringResource = R.string.creating_event;
 				}
-
+				
                 Toast.makeText(mActivity, stringResource, Toast.LENGTH_SHORT).show();
             } else if ((mCode & Utils.DONE_SAVE) != 0 && mDailyStatus != null && isEmptyNewDailyStatus()) {
                 Toast.makeText(mActivity, R.string.empty_event, Toast.LENGTH_SHORT).show();

@@ -328,18 +328,21 @@
     <!-- Body status lables. [CHAR LIMIT=30] -->
     <string-array name="body_status_labels">
         <item >Blood presure</item>
+        <item >Heart rate</item>
         <item >Other</item>
     </string-array>
 
     <!-- Body status values. [CHAR LIMIT=30] -->
     <string-array name="body_status_values">
-        <item >1</item>
-        <item >99</item>
+        <item >BLOOD_PRESURE</item>
+        <item >HEART_RATE</item>
+        <item >OTHER</item>
     </string-array>
 
     <!-- Body status default values. [CHAR LIMIT=30] -->
     <string-array name="body_status_default_values">
         <item >80 - 120</item>
+        <item >80</item>
         <item ></item>
     </string-array>
 

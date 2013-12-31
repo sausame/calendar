@@ -167,4 +167,35 @@ public class InforViewUtils {
         setValueButton.setText(defaultValues.get(index));
 	}
 
+    /**
+     * Extracts body status info from UI elements.
+     *
+     * @param bodyStatusItems UI elements (layouts with spinners) that hold array indices.
+     * @return Array with body status group  data.
+     */
+	public static BodyStatus[] bodyStatusItemsToBodyStatuses(
+			ArrayList<LinearLayout> bodyStatusItems,
+			ArrayList<String> typeValues) {
+		int len = bodyStatusItems.size();
+		BodyStatus bodyStatuses[] = new BodyStatus[len];
+		for (int index = 0; index < len; index++) {
+
+			LinearLayout layout = bodyStatusItems.get(index);
+			Spinner spinner = (Spinner) layout
+					.findViewById(R.id.body_status_type);
+			Button button = (Button) layout
+					.findViewById(R.id.body_status_value);
+
+			BodyStatus bodyStatus = new BodyStatus();
+			bodyStatus.setType(typeValues.get(spinner
+					.getSelectedItemPosition()));
+			bodyStatus.setValue(button.getText().toString());
+
+			bodyStatuses[index] = bodyStatus;
+		}
+
+		return bodyStatuses;
+	}
+
+
 }

@@ -481,7 +481,7 @@ public class CalendarDatabase {
 		DailyStatusManager manager = new DailyStatusManager();
 		
 		manager.setPathname(context.getResources().getString(
-				R.string.therapy_filename));
+				R.string.infor_filename));
 		manager.load();
 		
 		if (originalDailyStatus != null) {

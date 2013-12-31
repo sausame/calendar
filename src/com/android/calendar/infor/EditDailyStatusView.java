@@ -83,6 +83,8 @@ public class EditDailyStatusView implements View.OnClickListener,
 	LinearLayout mBodyStatusesContainer;
 	View mDescriptionGroup;
 	View mBodyStatusesGroup;
+	private Spinner mPrivacySpinner;
+	private Spinner mPartSpinner;
 
 	private int[] mOriginalPadding = new int[4];
 
@@ -282,6 +284,11 @@ public class EditDailyStatusView implements View.OnClickListener,
 			return false;
 		}
 
+		mDailyStatus.setLevel(mLevelSpinner.getSelectedItemPosition());
+		mDailyStatus.setPart("" + mPartSpinner.getSelectedItemPosition());
+
+		mDailyStatus.setPrivacy(mPrivacySpinner.getSelectedItemPosition() == 0);
+
 		mDailyStatus.setName(mTitleTextView.getText().toString());
 		mDailyStatus.setDescription(mDescriptionTextView.getText().toString());
 
@@ -292,8 +299,12 @@ public class EditDailyStatusView implements View.OnClickListener,
 		mWhenTime.hour = 0;
 		mWhenTime.minute = 0;
 		mWhenTime.second = 0;
-		
+
 		mDailyStatus.setDay(mWhenTime.normalize(true));
+
+		mDailyStatus.setBodyStatusesGroup(InforViewUtils
+				.bodyStatusItemsToBodyStatuses(mBodyStatusItems,
+						mBodyStatusTypeValues));
 
 		return true;
 	}
@@ -323,7 +334,7 @@ public class EditDailyStatusView implements View.OnClickListener,
 
 		mLevelAdapter = new LevelAdapter(activity);
 		mLevelSpinner.setAdapter(mLevelAdapter);
-		mLevelSpinner.setSelection(3);
+		mLevelSpinner.setSelection(0);
 		mLevelSpinner
 				.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 					public void onItemSelected(AdapterView<?> parent,
@@ -334,6 +345,9 @@ public class EditDailyStatusView implements View.OnClickListener,
 					public void onNothingSelected(AdapterView<?> arg0) {
 					}
 				});
+
+		mPrivacySpinner = (Spinner) view.findViewById(R.id.visibility);
+		mPartSpinner = (Spinner) view.findViewById(R.id.part);
 
         mOriginalPadding[0] = mTitleTextView.getPaddingLeft();
         mOriginalPadding[1] = mTitleTextView.getPaddingTop();
