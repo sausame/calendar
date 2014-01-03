@@ -12,6 +12,7 @@ import com.android.calendar.month.MonthByWeekAdapter;
 import com.android.calendar.month.MonthByWeekFragment;
 import com.android.calendar.month.SimpleWeekView;
 import com.android.calendar.therapy.Therapy;
+import com.android.calendar.therapy.TherapyCursor;
 import com.android.calendar.therapy.TherapyManager;
 
 import android.app.LoaderManager;
@@ -156,7 +157,7 @@ public class CalendarDatabase {
 	}
 
 	public interface OnLoaderListener {
-		public void onLoadFinished(Uri uri, Cursor data);
+		public void onLoadFinished(Uri uri, Cursor dailyStatusData, Cursor therapyData);
 	}
 
 	public static class CalendarLoader implements
@@ -336,7 +337,7 @@ public class CalendarDatabase {
 		public void onLoadFinished(android.content.Loader<Cursor> loader,
 				Cursor data) {
 			CursorLoader cLoader = (CursorLoader) loader;
-			mOnLoaderListener.onLoadFinished(cLoader.getUri(), data);
+			mOnLoaderListener.onLoadFinished(cLoader.getUri(), data, null);
 		}
 
 		@Override
@@ -353,7 +354,7 @@ public class CalendarDatabase {
 	// ------------------------------------------------------------------------------
 	// For personal daily information.
 	// ------------------------------------------------------------------------------
-	public static final Cursor instancesQuery(Context ctx, String[] projection,
+	public static final Cursor instancesQueryDailyStatus(Context ctx, String[] projection,
 			int startDay, int endDay, String selection, String[] selectionArgs,
 			String orderBy) {
 
@@ -416,7 +417,8 @@ public class CalendarDatabase {
 
 		public Loader init(OnLoaderListener listener) {
 			listener.onLoadFinished(updateUri(),
-					new DailyStatusCursor(mContext));
+					new DailyStatusCursor(mContext),
+					new TherapyCursor(mContext));
 			return this;
 		}
 
@@ -498,6 +500,13 @@ public class CalendarDatabase {
 	// ------------------------------------------------------------------------------
 	// For therapy.
 	// ------------------------------------------------------------------------------
+	public static final Cursor instancesQueryTherapy(Context ctx, String[] projection,
+			int startDay, int endDay, String selection, String[] selectionArgs,
+			String orderBy) {
+
+		return new TherapyCursor(ctx);
+	}
+
 	public static boolean saveTherapy(Context context, Therapy therapy,
 			Therapy originalTherapy, int modification) {
 		TherapyManager manager = new TherapyManager();

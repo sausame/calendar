@@ -328,14 +328,16 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
     }
 
     @Override
-    public void onLoadFinished(Uri uri, Cursor data) {
+    public void onLoadFinished(Uri uri, Cursor dailyStatusData, Cursor therapyData) {
     	if (mIsMiniMonth) {
     		return;
     	}
     	
         synchronized (mUpdateLoader) {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "Found " + data.getCount() + " cursor entries for uri " + uri);
+                Log.d(TAG, "Found " + dailyStatusData.getCount()
+							+ " daily status and " + therapyData.getCount()
+							+ " therapy cursor entries for uri " + uri);
             }
 
             if (mEventUri == null) {
@@ -350,8 +352,8 @@ public class MonthByWeekFragment extends SimpleDayPickerFragment implements
             }
             
             ArrayList<Event> events = new ArrayList<Event>();
-            Event.buildEventsFromCursor(
-                    events, data, mContext, mFirstLoadedJulianDay, mLastLoadedJulianDay);
+            Event.buildEventsFromCursor(events, dailyStatusData, therapyData,
+					mContext, mFirstLoadedJulianDay, mLastLoadedJulianDay);
             ((MonthByWeekAdapter) mAdapter).setEvents(mFirstLoadedJulianDay,
                     mLastLoadedJulianDay - mFirstLoadedJulianDay + 1, events);
         }

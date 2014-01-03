@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.android.calendar.infor.DailyStatus;
+import com.android.calendar.therapy.Therapy;
 
 // TODO: should Event be Parcelable so it can be passed via Intents?
 public class Event implements Cloneable {
@@ -225,7 +226,7 @@ public class Event implements Cloneable {
     /**
      * Loads <i>days</i> days worth of instances starting at <i>startDay</i>.
      */
-    public static void loadEvents(Context context, ArrayList<Event> events, int startDay, int days,
+    public static void loadEvents0(Context context, ArrayList<Event> events, int startDay, int days,
             int requestId, AtomicInteger sequenceNumber) {
 
         if (PROFILE) {
@@ -265,7 +266,7 @@ public class Event implements Cloneable {
 
 //            cEvents = CalendarDatabase.instancesQuery(context.getContentResolver(), EVENT_PROJECTION, startDay,
 //                    endDay, where, null, SORT_EVENTS_BY);
-            cAllday = CalendarDatabase.instancesQuery(context, EVENT_PROJECTION, startDay,
+            cAllday = CalendarDatabase.instancesQueryDailyStatus(context, EVENT_PROJECTION, startDay,
                     endDay, whereAllday, null, SORT_ALLDAY_BY);
 
             // Check if we should return early because there are more recent
@@ -319,8 +320,7 @@ public class Event implements Cloneable {
         // get sorted in the correct order
         cEvents.moveToPosition(-1);
         while (cEvents.moveToNext()) {
-        	// Event e = generateEventFromCursor(cEvents); // Calendar design
-            Event e = generateEventFromCursor(context, cEvents);
+        	Event e = generateEventFromCursor(cEvents); // Calendar design
             Log.v("" + startDay + " < " + e.startDay + " <= " + e.endDay + " < " + endDay);
             if (e.startDay > endDay || e.endDay < startDay) {
                 continue;
@@ -615,10 +615,10 @@ public class Event implements Cloneable {
 	// ------------------------------------------------------------------------------
 	// For personal daily information.
 	// ------------------------------------------------------------------------------
-	private DailyStatus mInfor = null;
+	private DailyStatus mDailyStatus = null;
 
-	public DailyStatus getInfor() {
-		return mInfor;
+	public DailyStatus getDailyStatus() {
+		return mDailyStatus;
 	}
 
 	public final static int LEVEL_COLOR[] = { android.R.color.holo_green_light,
@@ -629,12 +629,12 @@ public class Event implements Cloneable {
 		return LEVEL_COLOR[level % LEVEL_COLOR.length];
 	}
 
-	private static Event generateEventFromInfor(Context context, long id,
-			DailyStatus infor) {
+	private static Event generateEventFromDailyStatus(Context context, long id,
+			DailyStatus dailyStatus) {
 		Event e = new Event();
 
 		e.id = id;
-		e.title = infor.getName() + " (" + id + ")";
+		e.title = dailyStatus.getName() + " (" + id + ")";
 		e.location = "";
 		e.allDay = true;
 		e.organizer = "";
@@ -645,9 +645,9 @@ public class Event implements Cloneable {
 		}
 
 		e.color = Utils.getDisplayColorFromColor(context.getResources()
-				.getColor(getColorFromLevel(infor.getLevel())));
+				.getColor(getColorFromLevel(dailyStatus.getLevel())));
 
-		long eStart = infor.getDay();
+		long eStart = dailyStatus.getDay();
 		long eEnd = eStart;
 		
 		Time t = new Time(); 
@@ -673,8 +673,224 @@ public class Event implements Cloneable {
 		return e;
 	}
 
-	private static Event generateEventFromCursor(Context context, Cursor cEvents) {
-		DailyStatus infor = DailyStatus.parse(cEvents);
-		return generateEventFromInfor(context, cEvents.getPosition(), infor);
+    /**
+     * Adds all the events from the cursors to the events list.
+     *
+     * @param events The list of events
+     * @param cDailyStatuses Events to add to the list
+     * @param context
+     * @param startDay
+     * @param endDay
+     */
+    public static void buildEventsFromCursor(
+            ArrayList<Event> events,
+			Cursor cDailyStatuses,
+			Cursor cTherapies,
+			Context context,
+			int startDay,
+			int endDay) {
+
+        if (events == null) {
+            Log.e(TAG, "buildEventsFromCursor: null events list!");
+            return;
+        }
+
+		int count = 0;
+		if (cDailyStatuses != null) {
+			if (cDailyStatuses.getCount() > 0) {
+				// Sort events in two passes so we ensure the allday and standard events
+				// get sorted in the correct order
+				cDailyStatuses.moveToPosition(-1);
+				while (cDailyStatuses.moveToNext()) {
+					Event e = generateEventFromDailyStatusCursor(context, cDailyStatuses);
+					if (e.startDay > endDay || e.endDay < startDay) {
+						continue;
+					}
+					events.add(e);
+				}
+
+				count += cDailyStatuses.getCount();
+			}
+		}
+
+		if (cTherapies != null) {
+			if (cTherapies.getCount() > 0) {
+				// Sort events in two passes so we ensure the allday and standard events
+				// get sorted in the correct order
+				cTherapies.moveToPosition(-1);
+				while (cTherapies.moveToNext()) {
+					Event[] es = generateEventGroupFromTherapyCursor(context, cTherapies);
+					if (es[0].startDay > endDay || es[0].endDay < startDay) {
+						continue;
+					}
+
+					for (Event e : es) {
+						events.add(e);
+					}
+				}
+
+				count += cTherapies.getCount();
+			}
+		}
+
+		Log.i(TAG, "buildEventsFromCursor: " + count + " events list!");
+
+		Resources res = context.getResources();
+		mNoTitleString = res.getString(R.string.no_title_label);
+		mNoColorColor = res.getColor(R.color.event_center);
+    }
+
+	private static Event generateEventFromDailyStatusCursor(Context context, Cursor cEvents) {
+		DailyStatus dailyStatus = DailyStatus.parse(cEvents);
+		return generateEventFromDailyStatus(context, cEvents.getPosition(), dailyStatus);
 	}
+
+	// ------------------------------------------------------------------------------
+	// For therapy.
+	// ------------------------------------------------------------------------------
+	private static Event[] generateEventGroupFromTherapy(Context context, long id,
+			Therapy therapy) {
+		Event e = new Event();
+
+		e.id = id;
+		e.title = therapy.getName() + " (" + id + ")";
+		e.location = "";
+		e.allDay = false;
+		e.organizer = "";
+		e.guestsCanModify = false;
+
+		if (e.title == null || e.title.length() == 0) {
+			e.title = mNoTitleString;
+		}
+
+		e.color = Utils.getDisplayColorFromColor(context.getResources()
+				.getColor(android.R.color.darker_gray));
+
+		long eStart = therapy.getDay();
+		long eEnd = eStart;
+		
+		Time t = new Time(); 
+		t.set(eStart);
+
+		int eDate = Time.getJulianDay(eStart, t.gmtoff);;
+
+		e.startMillis = eStart;
+		e.startTime = 0;
+		e.startDay = eDate;
+
+		e.endMillis = eEnd;
+		e.endTime = 1440;
+		e.endDay = eDate;
+
+		e.hasAlarm = false;
+
+		// Check if this is a repeating event
+		e.isRepeating = false;
+
+		e.selfAttendeeStatus = 0;
+		
+		// To event group.
+		Event es[]; 
+
+		long reminders[] = therapy.getRemindersGroup();
+
+		if (reminders != null && reminders.length > 0) {
+			int num = reminders.length;
+			es = new Event[num]; 
+
+			for (int i = 0; i < num; i ++) {
+				Event event = null;
+				try {
+					event = (Event) e.clone();
+				} catch (CloneNotSupportedException ex) {
+					Log.e(TAG, e.toString());
+				}
+
+				Time when = new Time();
+				when.set(when);
+
+				event.startTime = when.hour * 60 + when.minute;
+				event.endTime = event.startTime + 60;
+
+				es[i] = event;
+			}
+		} else {
+			es = new Event[1]; 
+			es[0] = e;
+		}
+
+		return es;
+	}
+
+	private static Event[] generateEventGroupFromTherapyCursor(Context context, Cursor cEvents) {
+		Therapy therapy = Therapy.parse(cEvents);
+		return generateEventGroupFromTherapy(context, cEvents.getPosition(), therapy);
+	}
+
+    /**
+     * Loads <i>days</i> days worth of instances starting at <i>startDay</i>.
+     */
+    public static void loadEvents(Context context, ArrayList<Event> events, int startDay, int days,
+            int requestId, AtomicInteger sequenceNumber) {
+
+        if (PROFILE) {
+            Debug.startMethodTracing("loadEvents");
+        }
+
+        Cursor cTherapies = null;
+        Cursor cDailyStatus = null;
+
+        events.clear();
+        try {
+            int endDay = startDay + days - 1;
+
+            // We use the byDay instances query to get a list of all events for
+            // the days we're interested in.
+            // The sort order is: events with an earlier start time occur
+            // first and if the start times are the same, then events with
+            // a later end time occur first. The later end time is ordered
+            // first so that long rectangles in the calendar views appear on
+            // the left side.  If the start and end times of two events are
+            // the same then we sort alphabetically on the title.  This isn't
+            // required for correctness, it just adds a nice touch.
+
+            // Respect the preference to show/hide declined events
+            SharedPreferences prefs = GeneralPreferences.getSharedPreferences(context);
+            boolean hideDeclined = prefs.getBoolean(GeneralPreferences.KEY_HIDE_DECLINED,
+                    false);
+
+            String where = EVENTS_WHERE;
+            String whereAllday = ALLDAY_WHERE;
+            if (hideDeclined) {
+                String hideString = " AND " + Instances.SELF_ATTENDEE_STATUS + "!="
+                        + Attendees.ATTENDEE_STATUS_DECLINED;
+                where += hideString;
+                whereAllday += hideString;
+            }
+
+            cTherapies = CalendarDatabase.instancesQueryTherapy(context,
+						EVENT_PROJECTION, startDay, endDay, where, null, SORT_EVENTS_BY);
+            cDailyStatus = CalendarDatabase.instancesQueryDailyStatus(context,
+						EVENT_PROJECTION, startDay, endDay, whereAllday, null, SORT_ALLDAY_BY);
+
+            // Check if we should return early because there are more recent
+            // load requests waiting.
+            if (requestId != sequenceNumber.get()) {
+                return;
+            }
+
+            buildEventsFromCursor(events, cDailyStatus, cTherapies, context, startDay, endDay);
+
+        } finally {
+            if (cTherapies != null) {
+                cTherapies.close();
+            }
+            if (cDailyStatus != null) {
+                cDailyStatus.close();
+            }
+            if (PROFILE) {
+                Debug.stopMethodTracing();
+            }
+        }
+    }
 }
