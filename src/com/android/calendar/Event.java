@@ -812,6 +812,9 @@ public class Event implements Cloneable {
 				event.startTime = when.hour * 60 + when.minute;
 				event.endTime = event.startTime + 60;
 
+				event.startMillis += reminders[i];
+				event.endMillis += reminders[i] + 60 * 60 * 1000;
+
 				es[i] = event;
 			}
 		} else {
