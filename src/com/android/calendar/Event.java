@@ -807,7 +807,7 @@ public class Event implements Cloneable {
 				}
 
 				Time when = new Time();
-				when.set(when);
+				when.set(reminders[i]);
 
 				event.startTime = when.hour * 60 + when.minute;
 				event.endTime = event.startTime + 60;
