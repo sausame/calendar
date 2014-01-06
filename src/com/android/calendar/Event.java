@@ -413,6 +413,9 @@ public class Event implements Cloneable {
         doComputePositions(eventsList, minimumDurationMillis, true);
     }
 
+	/* XXX: The Column will be ERROR if the events aren't sorted. 
+	 * The function should be modified for therapy or daily status.
+	 */
     private static void doComputePositions(ArrayList<Event> eventsList,
             long minimumDurationMillis, boolean doAlldayEvents) {
         final ArrayList<Event> activeList = new ArrayList<Event>();
