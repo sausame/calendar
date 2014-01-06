@@ -160,6 +160,9 @@ public class Event implements Cloneable {
     public Event nextUp;
     public Event nextDown;
 
+	// Add for therapy or daily status.
+	public int type;
+
     @Override
     public final Object clone() throws CloneNotSupportedException {
         super.clone();
@@ -180,6 +183,7 @@ public class Event implements Cloneable {
         e.selfAttendeeStatus = selfAttendeeStatus;
         e.organizer = organizer;
         e.guestsCanModify = guestsCanModify;
+		e.type = type;
 
         return e;
     }
@@ -201,6 +205,7 @@ public class Event implements Cloneable {
         dest.selfAttendeeStatus = selfAttendeeStatus;
         dest.organizer = organizer;
         dest.guestsCanModify = guestsCanModify;
+		dest.type = type;
     }
 
     public static final Event newInstance() {
@@ -220,6 +225,7 @@ public class Event implements Cloneable {
         e.hasAlarm = false;
         e.isRepeating = false;
         e.selfAttendeeStatus = Attendees.ATTENDEE_STATUS_NONE;
+		e.type = 0;
 
         return e;
     }
@@ -789,6 +795,8 @@ public class Event implements Cloneable {
 		e.isRepeating = false;
 
 		e.selfAttendeeStatus = 0;
+
+		e.type = therapy.getType();
 		
 		// To event group.
 		Event es[]; 

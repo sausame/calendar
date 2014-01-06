@@ -19,6 +19,11 @@ import java.util.ArrayList;
 import java.util.TimeZone;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.format.Time;
@@ -184,4 +189,17 @@ public class TherapyViewUtils {
         }
     }
 
+	private final static int THERAPY_TYPE_ICON_RES_ID_GROUP[] = {
+			R.drawable.ic_drug_small, R.drawable.ic_injection_small };
+
+	public static void drawTherapyTypeIcon(Canvas canvas, Context context,
+			int type, Rect dst) {
+		Rect src = new Rect(0, 0, dst.width(), dst.height());
+		int resId = THERAPY_TYPE_ICON_RES_ID_GROUP[type
+				% THERAPY_TYPE_ICON_RES_ID_GROUP.length];
+		BitmapDrawable drawable = (BitmapDrawable) context.getResources()
+				.getDrawable(resId);
+		Bitmap bitmap = drawable.getBitmap();
+		canvas.drawBitmap(bitmap, src, dst, null);
+	}
 }

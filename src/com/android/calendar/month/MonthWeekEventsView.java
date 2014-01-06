@@ -20,6 +20,7 @@ import com.android.calendar.Event;
 import com.android.calendar.Log;
 import com.android.calendar.R;
 import com.android.calendar.Utils;
+import com.android.calendar.therapy.TherapyViewUtils;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -33,6 +34,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.Style;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.provider.CalendarContract.Attendees;
@@ -905,7 +907,11 @@ public class MonthWeekEventsView extends SimpleWeekView {
         }
         mEventSquarePaint.setStyle(boxStyle);
         mEventSquarePaint.setColor(color);
-        canvas.drawRect(r, mEventSquarePaint);
+        if (!allDay) {
+        	TherapyViewUtils.drawTherapyTypeIcon(canvas, getContext(), event.type, r);        	
+        } else {
+        	canvas.drawRect(r, mEventSquarePaint);
+        }
 
         float avail = textRightEdge - textX;
         CharSequence text = TextUtils.ellipsize(
