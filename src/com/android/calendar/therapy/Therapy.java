@@ -344,8 +344,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 
 				object.put("reminder", objectArray);
 			}
-			Log.v(this.toString());
-			Log.v(object.toString(2));
+
 			return object;
 		} catch (JSONException e) {
 			e.printStackTrace();
