@@ -908,7 +908,7 @@ public class MonthWeekEventsView extends SimpleWeekView {
         mEventSquarePaint.setStyle(boxStyle);
         mEventSquarePaint.setColor(color);
         if (!allDay) {
-        	TherapyViewUtils.drawTherapyTypeIcon(canvas, getContext(), event.type, r);        	
+        	TherapyViewUtils.drawTherapyTypeIconRect(canvas, getContext(), event.type, r.left, r.top);        	
         } else {
         	canvas.drawRect(r, mEventSquarePaint);
         }

@@ -34,6 +34,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.android.calendar.Log;
 import com.android.calendar.R;
 
 public class TherapyViewUtils {
@@ -192,14 +193,16 @@ public class TherapyViewUtils {
 	private final static int THERAPY_TYPE_ICON_RES_ID_GROUP[] = {
 			R.drawable.ic_drug_small, R.drawable.ic_injection_small };
 
-	public static void drawTherapyTypeIcon(Canvas canvas, Context context,
-			int type, Rect dst) {
-		Rect src = new Rect(0, 0, dst.width(), dst.height());
+	public static Rect drawTherapyTypeIconRect(Canvas canvas, Context context,
+			int type, int left, int top) {
 		int resId = THERAPY_TYPE_ICON_RES_ID_GROUP[type
 				% THERAPY_TYPE_ICON_RES_ID_GROUP.length];
 		BitmapDrawable drawable = (BitmapDrawable) context.getResources()
 				.getDrawable(resId);
 		Bitmap bitmap = drawable.getBitmap();
+		Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+		Rect dst = new Rect(left, top, left + bitmap.getWidth(), top + bitmap.getHeight());
 		canvas.drawBitmap(bitmap, src, dst, null);
+		return src;
 	}
 }

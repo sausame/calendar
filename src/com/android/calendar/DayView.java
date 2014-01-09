@@ -79,6 +79,7 @@ import android.widget.ViewSwitcher;
 
 import com.android.calendar.CalendarController.EventType;
 import com.android.calendar.CalendarController.ViewType;
+import com.android.calendar.therapy.TherapyViewUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -3134,6 +3135,11 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
             if (r.top > viewEndY || r.bottom < mViewStartY) {
                 continue;
             }
+
+			Rect iconR = TherapyViewUtils.drawTherapyTypeIconRect(canvas,
+					getContext(), event.type, r.left, r.top);
+			r.left += iconR.width();
+
             StaticLayout layout = getEventLayout(mLayouts, i, event, eventTextPaint, r);
             // TODO: not sure why we are 4 pixels off
             drawEventText(layout, r, canvas, mViewStartY + 4, mViewStartY + mViewHeight
