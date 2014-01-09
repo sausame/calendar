@@ -219,7 +219,7 @@ public class DailyStatus implements Comparable<DailyStatus>, Serializable {
 		try {
 			return object.getString(name);
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+//			Log.e(TAG, e.toString());
 			return null;
 		}
 	}
@@ -228,7 +228,7 @@ public class DailyStatus implements Comparable<DailyStatus>, Serializable {
 		try {
 			return Integer.parseInt(getStringValue(object, name));
 		} catch (Exception e) {
-			Log.e(TAG , e.toString());
+//			Log.e(TAG , e.toString());
 			return 0;
 		}
 	}
@@ -237,7 +237,7 @@ public class DailyStatus implements Comparable<DailyStatus>, Serializable {
 		try {
 			return Long.parseLong(getStringValue(object, name));
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+//			Log.e(TAG, e.toString());
 			return 0;
 		}
 	}
@@ -265,7 +265,7 @@ public class DailyStatus implements Comparable<DailyStatus>, Serializable {
 				dailyStatus.setBodyStatusesGroup(group);
 			}
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+//			Log.e(TAG, e.toString());
 		}
 		
 		return dailyStatus;
@@ -313,8 +313,6 @@ public class DailyStatus implements Comparable<DailyStatus>, Serializable {
 				object.put("body_status", objectArray);
 			}
 
-			Log.v(this.toString());
-			Log.v(object.toString(2));
 			return object;
 		} catch (JSONException e) {
 			e.printStackTrace();

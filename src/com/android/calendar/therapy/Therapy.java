@@ -248,7 +248,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 		try {
 			return object.getString(name);
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+//			Log.e(TAG, e.toString());
 			return null;
 		}
 	}
@@ -257,7 +257,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 		try {
 			return Integer.parseInt(getStringValue(object, name));
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+//			Log.e(TAG, e.toString());
 			return 0;
 		}
 	}
@@ -266,7 +266,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 		try {
 			return Long.parseLong(getStringValue(object, name));
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+//			Log.e(TAG, e.toString());
 			return 0;
 		}
 	}
@@ -296,7 +296,7 @@ public class Therapy implements Comparable<Therapy>, Serializable {
 				therapy.setRemindersGroup(group);
 			}
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+//			Log.e(TAG, e.toString());
 		}
 		
 		return therapy;

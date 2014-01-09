@@ -255,7 +255,7 @@ public class MonthByWeekAdapter extends SimpleWeeksAdapter {
     private void sendEventsToView(MonthWeekEventsView v) {
         if (mEventDayList.size() == 0) {
             if (Log.isLoggable(TAG, Log.DEBUG)) {
-                Log.d(TAG, "No events loaded, did not pass any events to view.");
+//              Log.d(TAG, "No events loaded, did not pass any events to view.");
             }
             v.setEvents(null, null);
             return;
