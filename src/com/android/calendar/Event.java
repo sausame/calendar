@@ -163,6 +163,9 @@ public class Event implements Cloneable {
 	// Add for therapy or daily status.
 	public int type;
 
+	public Therapy therapy = null;
+	public DailyStatus dailyStatus = null;
+
     @Override
     public final Object clone() throws CloneNotSupportedException {
         super.clone();
@@ -625,10 +628,8 @@ public class Event implements Cloneable {
 	// ------------------------------------------------------------------------------
 	// For personal daily information.
 	// ------------------------------------------------------------------------------
-	private DailyStatus mDailyStatus = null;
-
-	public DailyStatus getDailyStatus() {
-		return mDailyStatus;
+	public boolean isDailyStatus() {
+		return (dailyStatus != null);
 	}
 
 	public final static int LEVEL_COLOR[] = { android.R.color.holo_green_light,
@@ -679,6 +680,8 @@ public class Event implements Cloneable {
 		e.isRepeating = false;
 
 		e.selfAttendeeStatus = 0;
+
+		e.dailyStatus = dailyStatus;
 
 		return e;
 	}
@@ -758,6 +761,10 @@ public class Event implements Cloneable {
 	// ------------------------------------------------------------------------------
 	// For therapy.
 	// ------------------------------------------------------------------------------
+	public boolean isTherapy() {
+		return therapy != null;
+	}
+
 	private static Event[] generateEventGroupFromTherapy(Context context, long id,
 			Therapy therapy) {
 		Event e = new Event();
@@ -800,7 +807,7 @@ public class Event implements Cloneable {
 		e.selfAttendeeStatus = 0;
 
 		e.type = therapy.getType();
-		
+
 		// To event group.
 		Event es[]; 
 
@@ -827,6 +834,7 @@ public class Event implements Cloneable {
 				event.startMillis += reminders[i] + TimeZone.getDefault().getRawOffset();
 				event.endMillis = event.startMillis + 60 * 60 * 1000;
 
+				event.therapy = therapy;
 				es[i] = event;
 			}
 		} else {

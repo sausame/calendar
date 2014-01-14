@@ -15,6 +15,7 @@
 
 package com.android.calendar.event;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -51,6 +52,7 @@ import com.android.calendar.Utils;
 /**
  * Allows the user to quickly create a new all-day event from the calendar's month view.
  */
+@SuppressLint("ValidFragment")
 public class CreateEventDialogFragment extends DialogFragment implements TextWatcher {
 
     private static final String TAG = "CreateEventDialogFragment";
@@ -159,8 +161,8 @@ public class CreateEventDialogFragment extends DialogFragment implements TextWat
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            mController.sendEventRelatedEventWithExtraWithTitleWithCalendarId(this,
-                                    EventType.CREATE_EVENT, -1, mDateInMillis,
+                            mController.sendCreateEventRelatedEventWithExtraWithTitleWithCalendarId(this,
+                                    EventType.CREATE_EVENT, mDateInMillis,
                                     mDateInMillis + DateUtils.DAY_IN_MILLIS, 0, 0,
                                     CalendarController.EXTRA_CREATE_ALL_DAY, -1,
                                     mEventTitle.getText().toString(),

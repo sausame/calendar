@@ -223,8 +223,7 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
         @Override
         public void run() {
             if (mClickedEvent != null) {
-                mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, mClickedEvent.id,
-                        mClickedEvent.startMillis, mClickedEvent.endMillis,
+                mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, mClickedEvent,
                         DayView.this.getWidth() / 2, mClickedYLocation,
                         getSelectedTimeInMillis());
             }
@@ -1416,15 +1415,14 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
                     if (mSelectionAllday) {
                         extraLong = CalendarController.EXTRA_CREATE_ALL_DAY;
                     }
-                    mController.sendEventRelatedEventWithExtra(this, EventType.CREATE_EVENT, -1,
+                    mController.sendCreateEventRelatedEventWithExtra(this, EventType.CREATE_EVENT,
                             startMillis, endMillis, -1, -1, extraLong, -1);
                 } else {
                     if (mIsAccessibilityEnabled) {
                         mAccessibilityMgr.interrupt();
                     }
                     // Switch to the EventInfo view
-                    mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, selectedEvent.id,
-                            selectedEvent.startMillis, selectedEvent.endMillis, 0, 0,
+                    mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, selectedEvent, 0, 0,
                             getSelectedTimeInMillis());
                 }
             } else {
@@ -1435,8 +1433,7 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
                     if (mIsAccessibilityEnabled) {
                         mAccessibilityMgr.interrupt();
                     }
-                    mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, selectedEvent.id,
-                            selectedEvent.startMillis, selectedEvent.endMillis, 0, 0,
+                    mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, selectedEvent, 0, 0,
                             getSelectedTimeInMillis());
                 }
             }
@@ -1452,14 +1449,13 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
                 if (mSelectionAllday) {
                     extraLong = CalendarController.EXTRA_CREATE_ALL_DAY;
                 }
-                mController.sendEventRelatedEventWithExtra(this, EventType.CREATE_EVENT, -1,
+                mController.sendCreateEventRelatedEventWithExtra(this, EventType.CREATE_EVENT,
                         startMillis, endMillis, -1, -1, extraLong, -1);
             } else {
                 if (mIsAccessibilityEnabled) {
                     mAccessibilityMgr.interrupt();
                 }
-                mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, selectedEvent.id,
-                        selectedEvent.startMillis, selectedEvent.endMillis, 0, 0,
+                mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT, selectedEvent, 0, 0,
                         getSelectedTimeInMillis());
             }
         }
@@ -3906,7 +3902,7 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
                 extraLong = CalendarController.EXTRA_CREATE_ALL_DAY;
             }
             mSelectionMode = SELECTION_SELECTED;
-            mController.sendEventRelatedEventWithExtra(this, EventType.CREATE_EVENT, -1,
+            mController.sendCreateEventRelatedEventWithExtra(this, EventType.CREATE_EVENT,
                     getSelectedTimeInMillis(), 0, (int) ev.getRawX(), (int) ev.getRawY(),
                     extraLong, -1);
         } else if (mSelectedEvent != null) {
@@ -4442,16 +4438,14 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
                 case MENU_EVENT_VIEW: {
                     if (mSelectedEvent != null) {
                         mController.sendEventRelatedEvent(this, EventType.VIEW_EVENT_DETAILS,
-                                mSelectedEvent.id, mSelectedEvent.startMillis,
-                                mSelectedEvent.endMillis, 0, 0, -1);
+                                mSelectedEvent, 0, 0, -1);
                     }
                     break;
                 }
                 case MENU_EVENT_EDIT: {
                     if (mSelectedEvent != null) {
                         mController.sendEventRelatedEvent(this, EventType.EDIT_EVENT,
-                                mSelectedEvent.id, mSelectedEvent.startMillis,
-                                mSelectedEvent.endMillis, 0, 0, -1);
+                                mSelectedEvent, 0, 0, -1);
                     }
                     break;
                 }
@@ -4468,18 +4462,14 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
                 case MENU_EVENT_CREATE: {
                     long startMillis = getSelectedTimeInMillis();
                     long endMillis = startMillis + DateUtils.HOUR_IN_MILLIS;
-                    mController.sendEventRelatedEvent(this, EventType.CREATE_EVENT, -1,
+                    mController.sendCreateEvent(this, EventType.CREATE_EVENT,
                             startMillis, endMillis, 0, 0, -1);
                     break;
                 }
                 case MENU_EVENT_DELETE: {
                     if (mSelectedEvent != null) {
-                        Event selectedEvent = mSelectedEvent;
-                        long begin = selectedEvent.startMillis;
-                        long end = selectedEvent.endMillis;
-                        long id = selectedEvent.id;
-                        mController.sendEventRelatedEvent(this, EventType.DELETE_EVENT, id, begin,
-                                end, 0, 0, -1);
+                        mController.sendEventRelatedEvent(this, EventType.DELETE_EVENT,
+                        		mSelectedEvent, 0, 0, -1);
                     }
                     break;
                 }
@@ -4970,8 +4960,8 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
                             if (mSelectionAllday) {
                                 extraLong = CalendarController.EXTRA_CREATE_ALL_DAY;
                             }
-                            mController.sendEventRelatedEventWithExtra(this,
-                                    EventType.CREATE_EVENT, -1, getSelectedTimeInMillis(), 0, -1,
+                            mController.sendCreateEventRelatedEventWithExtra(this,
+                                    EventType.CREATE_EVENT, getSelectedTimeInMillis(), 0, -1,
                                     -1, extraLong, -1);
                         }
                     }

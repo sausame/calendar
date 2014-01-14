@@ -40,9 +40,11 @@ import android.text.format.Time;
 import android.util.Pair;
 
 import com.android.calendar.event.EditEventActivity;
+import com.android.calendar.infor.DailyStatus;
 import com.android.calendar.infor.EditDailyStatusActivity;
 import com.android.calendar.selectcalendars.SelectVisibleCalendarsActivity;
 import com.android.calendar.therapy.EditTherapyActivity;
+import com.android.calendar.therapy.Therapy;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
@@ -175,6 +177,9 @@ public class CalendarController {
         public ComponentName componentName;  // used in combination with query
         public String eventTitle;
         public long calendarId;
+
+		public Therapy therapy = null;
+		public DailyStatus dailyStatus = null;
 
         /**
          * For EventType.VIEW_EVENT:
@@ -321,13 +326,59 @@ public class CalendarController {
                 GeneralPreferences.DEFAULT_DETAILED_VIEW);
     }
 
-    public void sendEventRelatedEvent(Object sender, long eventType, long eventId, long startMillis,
+    public void sendCreateEvent(Object sender, long eventType, long startMillis,
             long endMillis, int x, int y, long selectedMillis) {
+		Event event = new Event();
+
+		event.id = -1;
+		event.startMillis = startMillis;
+		event.endMillis = endMillis;
+
+		sendEventRelatedEvent(sender, eventType, event, x, y, selectedMillis);
+    }
+
+    public void sendCreateEventRelatedEventWithExtra(Object sender, long eventType,
+            long startMillis, long endMillis, int x, int y, long extraLong, long selectedMillis) {
+		Event event = new Event();
+
+		event.id = -1;
+		event.startMillis = startMillis;
+		event.endMillis = endMillis;
+
+		sendEventRelatedEventWithExtra(sender, eventType, event, x, y, extraLong, selectedMillis);
+    }
+
+    public void sendCreateEventRelatedEventWithExtraWithTitleWithCalendarId(Object sender, long eventType,
+          long startMillis, long endMillis, int x, int y, long extraLong,
+          long selectedMillis, String title, long calendarId) {
+		Event event = new Event();
+
+		event.id = -1;
+		event.startMillis = startMillis;
+		event.endMillis = endMillis;
+
+		sendEventRelatedEventWithExtraWithTitleWithCalendarId(sender, eventType, event, x, y, extraLong,
+					selectedMillis, title, calendarId);
+    }
+    
+    public void sendEventRelatedEventWithExtra(Object sender, long eventType, long eventId,
+            long startMillis, long endMillis, int x, int y, long extraLong, long selectedMillis) {
+		Event event = new Event();
+
+		event.id = eventId;
+		event.startMillis = startMillis;
+		event.endMillis = endMillis;
+
+		sendEventRelatedEventWithExtra(sender, eventType, event, x, y, extraLong, selectedMillis);
+    }
+
+    public void sendEventRelatedEvent(Object sender, long eventType, Event event,
+				int x, int y, long selectedMillis) {
         // TODO: pass the real allDay status or at least a status that says we don't know the
         // status and have the receiver query the data.
         // The current use of this method for VIEW_EVENT is by the day view to show an EventInfo
         // so currently the missing allDay status has no effect.
-        sendEventRelatedEventWithExtra(sender, eventType, eventId, startMillis, endMillis, x, y,
+        sendEventRelatedEventWithExtra(sender, eventType, event, x, y,
                 EventInfo.buildViewExtraLong(Attendees.ATTENDEE_STATUS_NONE, false),
                 selectedMillis);
     }
@@ -346,10 +397,10 @@ public class CalendarController {
      *        Use Attendees.ATTENDEE_STATUS_NONE for no response.
      * @param selectedMillis The time to specify as selected
      */
-    public void sendEventRelatedEventWithExtra(Object sender, long eventType, long eventId,
-            long startMillis, long endMillis, int x, int y, long extraLong, long selectedMillis) {
-        sendEventRelatedEventWithExtraWithTitleWithCalendarId(sender, eventType, eventId,
-            startMillis, endMillis, x, y, extraLong, selectedMillis, null, -1);
+    public void sendEventRelatedEventWithExtra(Object sender, long eventType, Event event,
+				int x, int y, long extraLong, long selectedMillis) {
+        sendEventRelatedEventWithExtraWithTitleWithCalendarId(sender, eventType, event,
+					x, y, extraLong, selectedMillis, null, -1);
     }
 
     /**
@@ -369,7 +420,7 @@ public class CalendarController {
      * @param calendarId The id of the calendar which the event belongs to
      */
     public void sendEventRelatedEventWithExtraWithTitleWithCalendarId(Object sender, long eventType,
-          long eventId, long startMillis, long endMillis, int x, int y, long extraLong,
+          Event event, int x, int y, long extraLong,
           long selectedMillis, String title, long calendarId) {
         EventInfo info = new EventInfo();
         info.eventType = eventType;
@@ -377,9 +428,9 @@ public class CalendarController {
             info.viewType = ViewType.CURRENT;
         }
 
-        info.id = eventId;
+        info.id = event.id;
         info.startTime = new Time(Utils.getTimeZone(mContext, mUpdateTimezone));
-        info.startTime.set(startMillis);
+        info.startTime.set(event.startMillis);
         if (selectedMillis != -1) {
             info.selectedTime = new Time(Utils.getTimeZone(mContext, mUpdateTimezone));
             info.selectedTime.set(selectedMillis);
@@ -387,12 +438,16 @@ public class CalendarController {
             info.selectedTime = info.startTime;
         }
         info.endTime = new Time(Utils.getTimeZone(mContext, mUpdateTimezone));
-        info.endTime.set(endMillis);
+        info.endTime.set(event.endMillis);
         info.x = x;
         info.y = y;
         info.extraLong = extraLong;
         info.eventTitle = title;
         info.calendarId = calendarId;
+        
+        info.dailyStatus = event.dailyStatus;
+        info.therapy = event.therapy;
+        
         this.sendEvent(sender, info);
     }
     /**

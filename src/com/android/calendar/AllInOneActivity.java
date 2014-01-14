@@ -771,8 +771,8 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
             } else if (t.minute > 0 && t.minute < 30) {
                 t.minute = 30;
             }
-            mController.sendEventRelatedEvent(
-                    this, EventType.CREATE_EVENT, -1, t.toMillis(true), 0, 0, 0, -1);
+            mController.sendCreateEvent(
+                    this, EventType.CREATE_EVENT, t.toMillis(true), 0, 0, 0, -1);
             return true;
         } else if (itemId == R.id.action_create_personal_status) {
             t = new Time();
@@ -783,9 +783,9 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
             } else if (t.minute > 0 && t.minute < 30) {
                 t.minute = 30;
             }
-            mController.sendEventRelatedEvent(
+            mController.sendCreateEvent(
                     this, EventType.CREATE_PERSONAL_DAILY_STATUS,
-					-1, t.toMillis(true), 0, 0, 0, -1);
+					t.toMillis(true), 0, 0, 0, -1);
             return true;
         } else if (itemId == R.id.action_create_therapy) {
             t = new Time();
@@ -796,8 +796,8 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
             } else if (t.minute > 0 && t.minute < 30) {
                 t.minute = 30;
             }
-            mController.sendEventRelatedEvent(
-                    this, EventType.CREATE_THERAPY, -1, t.toMillis(true), 0, 0, 0, -1);
+            mController.sendCreateEvent(
+                    this, EventType.CREATE_THERAPY, t.toMillis(true), 0, 0, 0, -1);
             return true;
         } else if (itemId == R.id.action_select_visible_calendars) {
             mController.sendEvent(this, EventType.LAUNCH_SELECT_VISIBLE_CALENDARS, null, null,
