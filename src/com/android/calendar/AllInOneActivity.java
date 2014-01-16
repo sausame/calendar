@@ -68,6 +68,7 @@ import com.android.calendar.CalendarController.EventInfo;
 import com.android.calendar.CalendarController.EventType;
 import com.android.calendar.CalendarController.ViewType;
 import com.android.calendar.agenda.AgendaFragment;
+import com.android.calendar.infor.DailyStatusInfoFragment;
 import com.android.calendar.month.MonthByWeekFragment;
 import com.android.calendar.selectcalendars.SelectVisibleCalendarsFragment;
 
@@ -87,6 +88,8 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
     private static final String TAG = "AllInOneActivity";
     private static final boolean DEBUG = false;
     private static final String EVENT_INFO_FRAGMENT_TAG = "EventInfoFragment";
+    private static final String DAILY_STATUS_INFO_FRAGMENT_TAG = "DailyStatusInfoFragment";
+    private static final String THERAPY_INFO_FRAGMENT_TAG = "TherapyInfoFragment";
     private static final String BUNDLE_KEY_RESTORE_TIME = "key_restore_time";
     private static final String BUNDLE_KEY_EVENT_ID = "key_event_id";
     private static final String BUNDLE_KEY_RESTORE_VIEW = "key_restore_view";
@@ -1212,22 +1215,7 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
                     intent.putExtra(ATTENDEE_STATUS, response);
                     startActivity(intent);
                 } else {
-                    // start event info as a dialog
-                    EventInfoFragment fragment = new EventInfoFragment(this,
-                            event.id, event.startTime.toMillis(false),
-                            event.endTime.toMillis(false), response, true,
-                            EventInfoFragment.DIALOG_WINDOW_STYLE,
-                            null /* No reminders to explicitly pass in. */);
-                    fragment.setDialogParams(event.x, event.y, mActionBar.getHeight());
-                    FragmentManager fm = getFragmentManager();
-                    FragmentTransaction ft = fm.beginTransaction();
-                    // if we have an old popup replace it
-                    Fragment fOld = fm.findFragmentByTag(EVENT_INFO_FRAGMENT_TAG);
-                    if (fOld != null && fOld.isAdded()) {
-                        ft.remove(fOld);
-                    }
-                    ft.add(fragment, EVENT_INFO_FRAGMENT_TAG);
-                    ft.commit();
+					startEventInfoDialog(event, response);
                 }
             }
             displayTime = event.startTime.toMillis(true);
@@ -1239,6 +1227,46 @@ public class AllInOneActivity extends AbstractCalendarActivity implements EventH
         }
         updateSecondaryTitleFields(displayTime);
     }
+
+	private void startEventInfoDialog(EventInfo event, int response) {
+		Fragment fragment = null;
+		String tag = EVENT_INFO_FRAGMENT_TAG;
+		if (event.dailyStatus != null) {
+			// start event info as a dialog
+			DailyStatusInfoFragment infoFragment = new DailyStatusInfoFragment(
+					this, event.dailyStatus, true,
+					EventInfoFragment.DIALOG_WINDOW_STYLE);
+			infoFragment.setDialogParams(event.x, event.y,
+					mActionBar.getHeight());
+			fragment = infoFragment;
+			tag = DAILY_STATUS_INFO_FRAGMENT_TAG;
+		} else if (event.therapy != null) {
+			tag = THERAPY_INFO_FRAGMENT_TAG;
+		} else {
+			// start event info as a dialog
+			EventInfoFragment infoFragment = new EventInfoFragment(this,
+					event.id, event.startTime.toMillis(false),
+					event.endTime.toMillis(false), response, true,
+					EventInfoFragment.DIALOG_WINDOW_STYLE, null /*
+																 * No reminders
+																 * to explicitly
+																 * pass in.
+																 */);
+			infoFragment.setDialogParams(event.x, event.y,
+					mActionBar.getHeight());
+			fragment = infoFragment;
+		}
+		
+		FragmentManager fm = getFragmentManager();
+		FragmentTransaction ft = fm.beginTransaction();
+		// if we have an old popup replace it
+		Fragment fOld = fm.findFragmentByTag(EVENT_INFO_FRAGMENT_TAG);
+		if (fOld != null && fOld.isAdded()) {
+			ft.remove(fOld);
+		}
+		ft.add(fragment, tag);
+		ft.commit();
+	}
 
     // Needs to be in proguard whitelist
     // Specified as listener via android:onClick in a layout xml

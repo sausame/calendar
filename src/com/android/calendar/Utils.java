@@ -133,7 +133,7 @@ public class Utils {
 
     public static final String APPWIDGET_DATA_TYPE = "vnd.android.data/update";
 
-    static final String MACHINE_GENERATED_ADDRESS = "calendar.google.com";
+    public static final String MACHINE_GENERATED_ADDRESS = "calendar.google.com";
 
     private static final TimeZoneUtils mTZUtils = new TimeZoneUtils(SHARED_PREFS_NAME);
     private static boolean mAllowWeekForDetailView = false;

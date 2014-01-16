@@ -633,14 +633,14 @@ public class Event implements Cloneable {
 	}
 
 	public final static int LEVEL_COLOR[] = { android.R.color.holo_green_light,
-			android.R.color.holo_blue_light, android.R.color.holo_purple,
-			android.R.color.holo_orange_light, android.R.color.holo_red_light };
+			android.R.color.holo_blue_light, android.R.color.holo_orange_light,
+			android.R.color.holo_purple, android.R.color.holo_red_light };
 
 	private static int getColorFromLevel(int level) {
 		return LEVEL_COLOR[level % LEVEL_COLOR.length];
 	}
 
-	private static Event generateEventFromDailyStatus(Context context, long id,
+	public static Event generateEventFromDailyStatus(Context context, long id,
 			DailyStatus dailyStatus) {
 		Event e = new Event();
 
@@ -765,7 +765,7 @@ public class Event implements Cloneable {
 		return therapy != null;
 	}
 
-	private static Event[] generateEventGroupFromTherapy(Context context, long id,
+	public static Event[] generateEventGroupFromTherapy(Context context, long id,
 			Therapy therapy) {
 		Event e = new Event();
 
