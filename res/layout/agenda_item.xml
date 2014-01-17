@@ -30,7 +30,7 @@
         android:layout_rowSpan="1"
         android:layout_columnSpan="3"
         android:layout_width="match_parent" />
-    <com.android.calendar.ColorChipView
+    <com.ankh.calendar.ColorChipView
         android:id="@+id/agenda_item_color"
         android:layout_column="0"
         android:layout_row="1"

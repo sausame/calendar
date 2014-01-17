@@ -116,7 +116,7 @@
                             android:layout_height="wrap_content" />
                     </LinearLayout>
 
-                    <com.android.calendar.recurrencepicker.LinearLayoutWithMaxWidth
+                    <com.ankh.calendar.recurrencepicker.LinearLayoutWithMaxWidth
                         android:id="@+id/weekGroup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -126,22 +126,22 @@
                         android:gravity="center_horizontal"
                         android:orientation="horizontal" >
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
-                    </com.android.calendar.recurrencepicker.LinearLayoutWithMaxWidth>
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                    </com.ankh.calendar.recurrencepicker.LinearLayoutWithMaxWidth>
 
-                    <com.android.calendar.recurrencepicker.LinearLayoutWithMaxWidth
+                    <com.ankh.calendar.recurrencepicker.LinearLayoutWithMaxWidth
                         android:id="@+id/weekGroup2"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -151,16 +151,16 @@
                         android:orientation="horizontal"
                         android:visibility="gone" >
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
+                        <com.ankh.calendar.recurrencepicker.WeekButton style="@style/RecurrenceDayOfWeekStyle" />
 
-                        <com.android.calendar.recurrencepicker.WeekButton
+                        <com.ankh.calendar.recurrencepicker.WeekButton
                             style="@style/RecurrenceDayOfWeekStyle"
                             android:visibility="invisible" />
-                    </com.android.calendar.recurrencepicker.LinearLayoutWithMaxWidth>
+                    </com.ankh.calendar.recurrencepicker.LinearLayoutWithMaxWidth>
 
                     <RadioGroup
                         android:id="@+id/monthGroup"

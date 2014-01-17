@@ -1,23 +1,23 @@
--keep class com.android.calendar.selectcalendars.SelectCalendarsSyncFragment
--keep class com.android.calendar.OtherPreferences
--keep class com.android.calendar.AboutPreferences
--keepclassmembers class com.android.calendar.AllInOneActivity {
+-keep class com.ankh.calendar.selectcalendars.SelectCalendarsSyncFragment
+-keep class com.ankh.calendar.OtherPreferences
+-keep class com.ankh.calendar.AboutPreferences
+-keepclassmembers class com.ankh.calendar.AllInOneActivity {
   *** setControlsOffset(...);
 }
--keepclassmembers class com.android.calendar.selectcalendars.SelectVisibleCalendarsActivity {
+-keepclassmembers class com.ankh.calendar.selectcalendars.SelectVisibleCalendarsActivity {
   *** handleSelectSyncedCalendarsClicked(...);
 }
--keepclassmembers class com.android.calendar.AllInOneActivity {
+-keepclassmembers class com.ankh.calendar.AllInOneActivity {
   *** handleSelectSyncedCalendarsClicked(...);
 }
--keepclassmembers class com.android.calendar.AsyncQueryService {
+-keepclassmembers class com.ankh.calendar.AsyncQueryService {
   *** setTestHandler(...);
   *** getLastCancelableOperation(...);
 }
--keepclassmembers class com.android.calendar.AsyncQueryServiceHelper$OperationInfo {
+-keepclassmembers class com.ankh.calendar.AsyncQueryServiceHelper$OperationInfo {
   *** equivalent(...);
 }
--keepclassmembers class com.android.calendar.DayView {
+-keepclassmembers class com.ankh.calendar.DayView {
   *** setAnimateDayHeight(...);
   *** setAnimateDayEventHeight(...);
   *** setMoreAllDayEventsTextAlpha(...);
@@ -27,10 +27,10 @@
   *** setEventsAlpha(...);
   *** getEventsAlpha(...);
 }
--keepclassmembers class com.android.calendar.month.MonthWeekEventsView {
+-keepclassmembers class com.ankh.calendar.month.MonthWeekEventsView {
   *** setAnimateTodayAlpha(...);
 }
--keepclassmembers class com.android.calendar.event.EditEventHelper {
+-keepclassmembers class com.ankh.calendar.event.EditEventHelper {
  *** updateRecurrenceRule(...);
  *** extractDomain(...);
 }

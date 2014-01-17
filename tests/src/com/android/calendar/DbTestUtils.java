@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.android.calendar;
+package com.ankh.calendar;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.calendar;
+package com.ankh.calendar;
 
-import com.android.calendar.Utils;
-import com.android.calendar.CalendarUtils.TimeZoneUtils;
+import com.ankh.calendar.Utils;
+import com.ankh.calendar.CalendarUtils.TimeZoneUtils;
 
 import android.content.Context;
 import android.content.res.Configuration;
@@ -52,8 +52,8 @@ import junit.framework.TestCase;
  * Test class for verifying helper functions in Calendar's Utils
  *
  * You can run these tests with the following command:
- * "adb shell am instrument -w -e class com.android.calendar.UtilsTests
- *          com.android.calendar.tests/android.test.InstrumentationTestRunner"
+ * "adb shell am instrument -w -e class com.ankh.calendar.UtilsTests
+ *          com.ankh.calendar.tests/android.test.InstrumentationTestRunner"
  */
 public class UtilsTests extends TestCase {
     HashMap<String, Boolean> mIsDuplicateName;

@@ -43,7 +43,7 @@
         android:layout_height="1px"
         android:layout_width="match_parent" />
 
-    <com.android.calendar.month.MonthListView
+    <com.ankh.calendar.month.MonthListView
         android:id="@android:id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

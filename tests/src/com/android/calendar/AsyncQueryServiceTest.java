@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.android.calendar;
+package com.ankh.calendar;
 
-import com.android.calendar.AsyncQueryService.Operation;
-import com.android.calendar.AsyncQueryServiceHelper.OperationInfo;
+import com.ankh.calendar.AsyncQueryService.Operation;
+import com.ankh.calendar.AsyncQueryServiceHelper.OperationInfo;
 
 import android.content.ComponentName;
 import android.content.ContentProvider;

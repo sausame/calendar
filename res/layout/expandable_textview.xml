@@ -13,7 +13,7 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<com.android.calendar.ExpandableTextView
+<com.ankh.calendar.ExpandableTextView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -48,4 +48,4 @@
         android:background="#00000000"
         android:textColor="@color/event_info_description_color" />
 
-</com.android.calendar.ExpandableTextView>
+</com.ankh.calendar.ExpandableTextView>

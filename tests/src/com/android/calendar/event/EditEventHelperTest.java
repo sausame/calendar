@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.android.calendar.event;
+package com.ankh.calendar.event;
 
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
@@ -35,12 +35,12 @@ import android.text.format.DateUtils;
 import android.text.format.Time;
 import android.text.util.Rfc822Token;
 
-import com.android.calendar.AbstractCalendarActivity;
-import com.android.calendar.AsyncQueryService;
-import com.android.calendar.CalendarEventModel;
-import com.android.calendar.CalendarEventModel.ReminderEntry;
-import com.android.calendar.R;
-import com.android.calendar.Utils;
+import com.ankh.calendar.AbstractCalendarActivity;
+import com.ankh.calendar.AsyncQueryService;
+import com.ankh.calendar.CalendarEventModel;
+import com.ankh.calendar.CalendarEventModel.ReminderEntry;
+import com.ankh.calendar.R;
+import com.ankh.calendar.Utils;
 import com.android.common.Rfc822Validator;
 
 import java.util.ArrayList;

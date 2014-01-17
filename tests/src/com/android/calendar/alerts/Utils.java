@@ -14,7 +14,7 @@
  * the License.
  */
 
-package com.android.calendar.alerts;
+package com.ankh.calendar.alerts;
 
 import android.text.format.Time;
 

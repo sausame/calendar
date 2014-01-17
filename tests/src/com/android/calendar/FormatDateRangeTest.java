@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.calendar;
+package com.ankh.calendar;
 
 import android.test.AndroidTestCase;
 import android.test.suitebuilder.annotation.MediumTest;

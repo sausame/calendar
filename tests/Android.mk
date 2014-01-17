@@ -1,7 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_EMMA_COVERAGE_FILTER := +com.android.calendar.*
+LOCAL_EMMA_COVERAGE_FILTER := +com.ankh.calendar.*
 
 # We only want this apk build for tests.
 LOCAL_MODULE_TAGS := tests

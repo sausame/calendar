@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.calendar;
+package com.ankh.calendar;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;

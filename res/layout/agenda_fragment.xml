@@ -20,13 +20,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <view
-        class="com.android.calendar.StickyHeaderListView"
+        class="com.ankh.calendar.StickyHeaderListView"
         android:id="@+id/agenda_sticky_header_list"
         android:layout_height="match_parent"
         android:layout_weight=".40"
         android:layout_width="0px">
         <view
-            class="com.android.calendar.agenda.AgendaListView"
+            class="com.ankh.calendar.agenda.AgendaListView"
             android:id="@+id/agenda_events_list"
             android:fadingEdge="none"
             android:layout_height="match_parent"

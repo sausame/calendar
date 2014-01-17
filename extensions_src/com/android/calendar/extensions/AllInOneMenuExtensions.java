@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.calendar.extensions;
+package com.ankh.calendar.extensions;
 
 import android.content.Context;
 import android.view.Menu;

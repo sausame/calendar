@@ -18,7 +18,7 @@
 */
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.android.calendar"
+        package="com.ankh.calendar"
         android:sharedUserLabel="@string/app_label">
 
     <!--
@@ -46,7 +46,7 @@
             android:label="@string/app_label" android:icon="@mipmap/ic_launcher_calendar"
             android:taskAffinity="android.task.calendar"
             android:hardwareAccelerated="true"
-            android:backupAgent="com.android.calendar.CalendarBackupAgent"
+            android:backupAgent="com.ankh.calendar.CalendarBackupAgent"
             android:requiredAccountType="*" >
 
         <meta-data android:name="com.google.android.backup.api_key"
@@ -68,7 +68,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="time/epoch" />
-                <data android:host="com.android.calendar" />
+                <data android:host="com.ankh.calendar" />
                 <data android:scheme="content"/>
             </intent-filter>
         </activity>
@@ -79,7 +79,7 @@
         </activity-alias>
 
         <activity android:name="EventInfoActivity"
-            android:parentActivityName="com.android.calendar.AllInOneActivity"
+            android:parentActivityName="com.ankh.calendar.AllInOneActivity"
             android:theme="@style/CalendarTheme.WithActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
@@ -91,7 +91,7 @@
                 <data android:mimeType="vnd.android.cursor.item/event" />
             </intent-filter>
             <meta-data android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.android.calendar.AllInOneActivity" />
+                android:value="com.ankh.calendar.AllInOneActivity" />
         </activity>
 
         <activity android:name=".event.EditEventActivity"
@@ -153,7 +153,7 @@
         <!-- Declarations for search -->
         <!-- Make all activities a searchable context -->
         <meta-data android:name="android.app.default_searchable"
-            android:value="com.android.calendar.SearchActivity"/>
+            android:value="com.ankh.calendar.SearchActivity"/>
 
         <activity android:name="SearchActivity" android:label="@string/search_title"
             android:launchMode="singleTop" android:theme="@style/CalendarTheme.WithActionBar"
@@ -167,7 +167,7 @@
 
         <provider android:name=".CalendarRecentSuggestionsProvider"
             android:exported="false"
-            android:authorities="com.android.calendar.CalendarRecentSuggestionsProvider" />
+            android:authorities="com.ankh.calendar.CalendarRecentSuggestionsProvider" />
 
         <!-- Declarations for alerts/reminders -->
         <activity android:name=".alerts.AlertActivity" android:launchMode="singleInstance"
@@ -211,7 +211,7 @@
         <receiver android:name=".widget.CalendarAppWidgetProvider" android:label="@string/gadget_title">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.android.calendar.APPWIDGET_UPDATE" />
+                <action android:name="com.ankh.calendar.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/appwidget_info" />
         </receiver>
@@ -226,12 +226,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.PROVIDER_CHANGED"/>
                 <data android:scheme="content"/>
-                <data android:host="com.android.calendar"/>
+                <data android:host="com.ankh.calendar"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="com.android.calendar.APPWIDGET_SCHEDULED_UPDATE"/>
+                <action android:name="com.ankh.calendar.APPWIDGET_SCHEDULED_UPDATE"/>
                 <data android:scheme="content"/>
-                <data android:host="com.android.calendar"/>
+                <data android:host="com.ankh.calendar"/>
                 <data android:mimeType="vnd.android.data/update" />
             </intent-filter>
         </receiver>

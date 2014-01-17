@@ -265,7 +265,7 @@
             </LinearLayout>
 
             <!-- GUEST LIST -->
-            <com.android.calendar.event.AttendeesView
+            <com.ankh.calendar.event.AttendeesView
                 android:id="@+id/long_attendee_list"
                 android:textColor="@color/event_info_body_color"
                 android:orientation="vertical"
